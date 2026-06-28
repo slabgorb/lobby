@@ -1,0 +1,79 @@
+import { describe, it, expect } from 'vitest'
+import { GAMES, getGame, type Game } from '../src/core/registry'
+
+// The registry is the lobby's source of truth for "what games exist on the
+// cabinet": the data 7-3's tile grid renders and 7-4's launch will dispatch on.
+// These tests pin the shape and the invariants every entry must satisfy, so a
+// malformed game (blank title, bad colour, duplicate id) fails loudly here
+// rather than silently rendering a broken tile.
+
+const HEX = /^#[0-9a-fA-F]{3,8}$/
+
+describe('GAMES registry', () => {
+  it('lists at least one game', () => {
+    expect(GAMES.length).toBeGreaterThan(0)
+  })
+
+  it('includes tempest, launching at its served path', () => {
+    const tempest = GAMES.find((g) => g.id === 'tempest')
+    expect(tempest).toBeDefined()
+    // Tempest is served under /tempest/ (CLAUDE.md); the tile must launch there.
+    expect(tempest?.launchUrl).toBe('/tempest/')
+  })
+
+  it('has unique ids across every entry', () => {
+    const ids = GAMES.map((g) => g.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('gives every game a non-empty title', () => {
+    for (const g of GAMES) {
+      expect(g.title.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('points every launchUrl at a root-relative path', () => {
+    for (const g of GAMES) {
+      expect(g.launchUrl.startsWith('/')).toBe(true)
+    }
+  })
+
+  it('gives every game a valid hex glow colour', () => {
+    for (const g of GAMES) {
+      expect(g.color).toMatch(HEX)
+    }
+  })
+})
+
+describe('getGame', () => {
+  it('returns the matching game by id', () => {
+    const g = getGame('tempest')
+    expect(g).toBeDefined()
+    expect(g?.id).toBe('tempest')
+    // Returns the actual registry entry, not a lookalike.
+    expect(g).toBe(GAMES.find((x) => x.id === 'tempest'))
+  })
+
+  it('returns undefined for an unknown id', () => {
+    expect(getGame('does-not-exist')).toBeUndefined()
+  })
+
+  it('returns undefined for an empty id rather than a spurious match', () => {
+    expect(getGame('')).toBeUndefined()
+  })
+})
+
+// Compile-time guard: a Game literal must satisfy the full interface. If a
+// required field is dropped from the type this stops type-checking, and if the
+// field set drifts this test documents the contract the renderer relies on.
+describe('Game shape', () => {
+  it('requires id, title, launchUrl, and color', () => {
+    const sample: Game = {
+      id: 'sample',
+      title: 'SAMPLE',
+      launchUrl: '/sample/',
+      color: '#00eaff',
+    }
+    expect(Object.keys(sample).sort()).toEqual(['color', 'id', 'launchUrl', 'title'])
+  })
+})
