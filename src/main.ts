@@ -3,6 +3,7 @@
 // placeholder. Game-listing tiles, launch, attract-loop, and high scores arrive
 // in later epic-7 stories; this scaffold only proves the render target is live.
 import { canvasSize } from './core/layout'
+import { glowText } from './shell/render'
 
 const canvas = document.getElementById('lobby') as HTMLCanvasElement
 const ctx = canvas.getContext('2d')!
@@ -27,14 +28,13 @@ function draw(): void {
   ctx.fillRect(0, 0, w, h)
 
   // Glowing vector title — the arcade visual language: bright lines on black.
+  // Painted through the shared glow primitive (story 7-2) so the lobby and its
+  // future tiles share one neon-bloom implementation.
   ctx.save()
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.font = `${Math.floor(h * 0.12)}px Orbitron, monospace`
-  ctx.shadowColor = '#00eaff'
-  ctx.shadowBlur = Math.floor(h * 0.03)
-  ctx.fillStyle = '#00eaff'
-  ctx.fillText('ARCADE', w / 2, h / 2)
+  glowText(ctx, 'ARCADE', w / 2, h / 2, { color: '#00eaff', blur: Math.floor(h * 0.03) })
   ctx.restore()
 }
 
