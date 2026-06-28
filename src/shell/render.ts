@@ -117,6 +117,11 @@ export function glowRect(
  * bloom + a tighter inner glow) beneath a crisp core. Respects the caller's
  * current font / textAlign / textBaseline; save/restore keeps the 'lighter'
  * blend from leaking. `style.width` is unused — text has no stroke.
+ *
+ * Applies the shared arcade text treatment so the lobby matches tempest and
+ * star-wars: the Vector Battle ROM face (see shell/font.ts) is caps-only and a
+ * tight monoline, so the text is uppercased and tracked out ~0.1em (derived from
+ * the current font's px size) for the airy marquee look that helps thin caps read.
  */
 export function glowText(
   ctx: CanvasRenderingContext2D,
@@ -125,6 +130,11 @@ export function glowText(
   y: number,
   style: Readonly<GlowStyle>,
 ): void {
+  // ~0.1em tracking from the current font's px size (16px fallback if unparsable).
+  const px = /(\d+(?:\.\d+)?)px/.exec(ctx.font)
+  ctx.letterSpacing = `${((px ? parseFloat(px[1]) : 16) * 0.1).toFixed(2)}px`
+  const caps = text.toUpperCase() // Vector Battle is caps-only
+
   const blur = style.blur ?? DEFAULT_BLUR
   ctx.fillStyle = style.fill ?? style.color
   ctx.shadowColor = style.color
@@ -132,11 +142,11 @@ export function glowText(
     ctx.save()
     ctx.globalCompositeOperation = 'lighter'
     ctx.shadowBlur = blur * 1.5
-    ctx.fillText(text, x, y)
+    ctx.fillText(caps, x, y)
     ctx.shadowBlur = blur * 0.8
-    ctx.fillText(text, x, y)
+    ctx.fillText(caps, x, y)
     ctx.restore()
   }
   ctx.shadowBlur = 0
-  ctx.fillText(text, x, y)
+  ctx.fillText(caps, x, y)
 }

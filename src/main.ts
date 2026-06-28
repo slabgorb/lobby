@@ -1,15 +1,30 @@
 // src/main.ts
 // Lobby bootstrap: wire a full-window Canvas 2D surface and paint the lobby —
-// the ARCADE title plus a centred grid of game tiles (story 7-3). Tile launch,
-// attract-loop, and high scores arrive in later epic-7 stories.
+// the ARCADE title plus a centred grid of game tiles (story 7-3) — then let the
+// player move a selection cursor over the tiles and launch one (story 7-4).
+// Attract-loop and high scores arrive in later epic-7 stories.
 import { canvasSize } from './core/layout'
 import { glowText } from './shell/render'
 import { GAMES } from './core/registry'
-import { tileGrid } from './core/grid'
+import { tileGrid, defaultColumns } from './core/grid'
 import { drawTiles } from './shell/tiles'
+import { bindLobbyInput, launchGame } from './shell/input'
+import { loadVectorFont } from './shell/font'
 
 const canvas = document.getElementById('lobby') as HTMLCanvasElement
 const ctx = canvas.getContext('2d')!
+
+// The Vector Battle ROM face, with the 'Orbitron', monospace fallback chain the
+// games use so the lobby reads even before the web font lands. Weights match the
+// games: a heavy 900 marquee title, 700 tile labels.
+const TITLE_FONT = (px: number) => `900 ${px}px 'Vector Battle', 'Orbitron', monospace`
+const TILE_FONT = (px: number) => `700 ${px}px 'Vector Battle', 'Orbitron', monospace`
+
+// Which tile the cursor sits on, and the column count the grid is laid out with.
+// Selection navigation must use the SAME column count as the render, so both read
+// it from defaultColumns (story 7-4).
+let selectedIndex = 0
+const columns = defaultColumns(GAMES.length)
 
 function resize(): void {
   const { width, height } = canvasSize(
@@ -36,7 +51,7 @@ function draw(): void {
   ctx.save()
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.font = `${Math.floor(h * 0.12)}px Orbitron, monospace`
+  ctx.font = TITLE_FONT(Math.floor(h * 0.12))
   glowText(ctx, 'ARCADE', w / 2, h * 0.16, { color: '#00eaff', blur: Math.floor(h * 0.03) })
   ctx.restore()
 
@@ -52,14 +67,38 @@ function draw(): void {
     height: h - gridTop,
     tileWidth,
     tileHeight,
+    columns,
     gap: Math.floor(w * 0.04),
   }).map((r) => ({ ...r, y: r.y + gridTop }))
 
   ctx.save()
-  ctx.font = `${Math.floor(tileHeight * 0.22)}px Orbitron, monospace`
-  drawTiles(ctx, GAMES, rects)
+  ctx.font = TILE_FONT(Math.floor(tileHeight * 0.22))
+  drawTiles(ctx, GAMES, rects, selectedIndex)
   ctx.restore()
 }
 
+// Arrow keys move the cursor between tiles; Enter launches the selected game by
+// navigating the tab to its launchUrl. The grid-navigation maths and the
+// key→action mapping live in core/selection.ts and shell/input.ts; main only
+// holds the mutable selection and repaints.
+bindLobbyInput(window, {
+  getIndex: () => selectedIndex,
+  getCount: () => GAMES.length,
+  getColumns: () => columns,
+  onMove: (next) => {
+    selectedIndex = next
+    draw()
+  },
+  onLaunch: (index) => launchGame(GAMES[index], (url) => { window.location.href = url }),
+})
+
 window.addEventListener('resize', resize)
 resize()
+
+// Kick off the Vector Battle font load. Best-effort and non-blocking: the lobby
+// is already painted with the fallback font above; repaint once the real face
+// lands so the title and labels pick it up. (The lobby draws on demand, not in a
+// loop, so it must repaint explicitly — unlike the games' render loops.)
+void loadVectorFont().then((loaded) => {
+  if (loaded) draw()
+})
