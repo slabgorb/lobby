@@ -122,6 +122,11 @@ export function glowRect(
  * star-wars: the Vector Battle ROM face (see shell/font.ts) is caps-only and a
  * tight monoline, so the text is uppercased and tracked out ~0.1em (derived from
  * the current font's px size) for the airy marquee look that helps thin caps read.
+ *
+ * Note: this DOES set `ctx.letterSpacing` as part of the treatment and does NOT
+ * restore it (intentional, mirroring tempest/star-wars — every text draw re-derives
+ * spacing from its own font, and framing code resets it). Callers that rely on a
+ * prior `letterSpacing` for a different purpose should save/restore around the call.
  */
 export function glowText(
   ctx: CanvasRenderingContext2D,

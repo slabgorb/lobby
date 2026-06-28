@@ -127,10 +127,12 @@ describe('drawTiles — selection highlight (story 7-4)', () => {
     const styles = rectStyles()
     const selected = styles[1]
     const others = [styles[0], styles[2]]
-    // The selected tile's outline glows harder: bigger blur and thicker stroke,
-    // while the unselected tiles carry no boosted glow (plain default outline).
-    expect(selected.blur ?? 0).toBeGreaterThan(others[0].blur ?? 0)
-    expect(selected.width ?? 0).toBeGreaterThan(others[0].width ?? 0)
+    // Pin the exact boosted values (tiles.ts SELECTED_BLUR / SELECTED_WIDTH) so a
+    // regression to a weak or zero highlight is caught — a relational ">0" check
+    // would pass for any positive constant, even an invisible one.
+    expect(selected.blur).toBe(24)
+    expect(selected.width).toBe(4)
+    // ...while the unselected tiles carry no boosted glow (plain default outline).
     for (const o of others) {
       expect(o.blur).toBeUndefined()
       expect(o.width).toBeUndefined()

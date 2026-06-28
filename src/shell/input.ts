@@ -32,7 +32,7 @@ export function keyToAction(key: string): LobbyAction | null {
  * `window.location.href`). Navigation is injected so the dispatch is unit-testable
  * without a real window. A missing game (selection out of range) is a no-op.
  */
-export function launchGame(game: Game | undefined, navigate: (url: string) => void): void {
+export function launchGame(game: Readonly<Game> | undefined, navigate: (url: string) => void): void {
   if (!game) return
   navigate(game.launchUrl)
 }

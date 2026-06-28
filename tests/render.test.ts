@@ -291,10 +291,13 @@ describe('glowText', () => {
     expect(base.fillText).toHaveBeenCalledWith('TEMPEST', 10, 20)
   })
 
-  it('tracks letters to ~0.1em of the current font size', () => {
+  it('tracks letters to ~0.1em of the font size, overwriting (not restoring) prior tracking', () => {
     const { ctx, base } = makeCtx()
     base.font = "900 100px 'Vector Battle', 'Orbitron', monospace"
+    base.letterSpacing = '5px' // a value the caller had set before
     glowText(ctx, 'ARCADE', 0, 0, { color: '#00eaff', blur: 0 })
+    // Intentional persistent treatment (see glowText JSDoc): the prior value is
+    // replaced by the derived ~0.1em tracking and deliberately not restored.
     expect(base.letterSpacing).toBe('10.00px') // 100px * 0.1
   })
 

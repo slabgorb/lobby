@@ -73,6 +73,25 @@ describe('moveSelection — partial final row (count 5, columns 3)', () => {
     expect(moveSelection(3, 5, 3, 'down')).toBe(0)
     expect(moveSelection(4, 5, 3, 'down')).toBe(1)
   })
+
+  it('wraps left within the short bottom row only', () => {
+    // The `rowLen = min(cols, count - rowStart)` guard keeps left from landing on
+    // the empty cell where index 5 would be; the row [3,4] wraps onto itself.
+    expect(moveSelection(4, 5, 3, 'left')).toBe(3)
+    expect(moveSelection(3, 5, 3, 'left')).toBe(4) // wrap: leftmost → rightmost
+  })
+
+  it('moves up from the partial row into the row above', () => {
+    expect(moveSelection(3, 5, 3, 'up')).toBe(0)
+    expect(moveSelection(4, 5, 3, 'up')).toBe(1)
+  })
+
+  it('wraps up from the top row down into the partial row', () => {
+    // colHeight for columns 0 and 1 is 2 (rows 0 and the partial row), so up from
+    // the top row wraps to the bottom-most populated cell in that column.
+    expect(moveSelection(0, 5, 3, 'up')).toBe(3)
+    expect(moveSelection(1, 5, 3, 'up')).toBe(4)
+  })
 })
 
 describe('moveSelection — defensive inputs', () => {

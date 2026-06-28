@@ -90,6 +90,20 @@ describe('bindLobbyInput', () => {
     expect(onMove).toHaveBeenCalledWith(2)
   })
 
+  it('reads the live index each press, not a fixed start', () => {
+    const { target, fire } = makeTarget()
+    const onMove = vi.fn()
+    bindLobbyInput(target, {
+      getIndex: () => 2, // bottom-left of a 2x2 grid, not 0
+      getCount: () => 4,
+      getColumns: () => 2,
+      onMove,
+      onLaunch: vi.fn(),
+    })
+    fire('ArrowRight')
+    expect(onMove).toHaveBeenCalledWith(3) // moveSelection(2, 4, 2, 'right') — proves the closure is read
+  })
+
   it('launches the current selection on Enter', () => {
     const { target, fire } = makeTarget()
     const onLaunch = vi.fn()

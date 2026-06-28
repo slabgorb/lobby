@@ -9,7 +9,7 @@ import { GAMES } from './core/registry'
 import { tileGrid, defaultColumns } from './core/grid'
 import { drawTiles } from './shell/tiles'
 import { bindLobbyInput, launchGame } from './shell/input'
-import { loadVectorFont } from './shell/font'
+import { loadVectorFont, UI_FONT_FAMILY } from './shell/font'
 
 const canvas = document.getElementById('lobby') as HTMLCanvasElement
 const ctx = canvas.getContext('2d')!
@@ -17,8 +17,8 @@ const ctx = canvas.getContext('2d')!
 // The Vector Battle ROM face, with the 'Orbitron', monospace fallback chain the
 // games use so the lobby reads even before the web font lands. Weights match the
 // games: a heavy 900 marquee title, 700 tile labels.
-const TITLE_FONT = (px: number) => `900 ${px}px 'Vector Battle', 'Orbitron', monospace`
-const TILE_FONT = (px: number) => `700 ${px}px 'Vector Battle', 'Orbitron', monospace`
+const TITLE_FONT = (px: number) => `900 ${px}px '${UI_FONT_FAMILY}', 'Orbitron', monospace`
+const TILE_FONT = (px: number) => `700 ${px}px '${UI_FONT_FAMILY}', 'Orbitron', monospace`
 
 // Which tile the cursor sits on, and the column count the grid is laid out with.
 // Selection navigation must use the SAME column count as the render, so both read
