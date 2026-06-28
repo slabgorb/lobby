@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tileGrid, type TileRect, type GridSpec } from '../src/core/grid'
+import { tileGrid, defaultColumns, type TileRect, type GridSpec } from '../src/core/grid'
 
 // Pure, DOM-free layout math (lives in core/, like layout.ts). Given a tile
 // count, the canvas size, a fixed tile size, and a column count, tileGrid places
@@ -88,6 +88,27 @@ describe('tileGrid — default column count', () => {
     // Tile 3 wraps to the second row.
     expect(rects[3].y).toBeGreaterThan(rects[0].y)
     expect(rects[3].x).toBe(rects[0].x)
+  })
+})
+
+describe('defaultColumns', () => {
+  // The single source of truth for "how many columns does N tiles get", shared by
+  // tileGrid's default and the selection cursor (story 7-4) so the rendered grid
+  // and the navigation maths can never disagree on the column count.
+  it('gives a roughly-square grid: ceil(sqrt(count))', () => {
+    expect(defaultColumns(1)).toBe(1)
+    expect(defaultColumns(2)).toBe(2)
+    expect(defaultColumns(4)).toBe(2)
+    expect(defaultColumns(5)).toBe(3)
+    expect(defaultColumns(9)).toBe(3)
+  })
+
+  it('is the column count tileGrid falls back to when none is given', () => {
+    // 5 tiles, no columns → 3 columns → the first row holds tiles 0,1,2.
+    const rects = tileGrid({ width: 1200, height: 1200, tileWidth: 100, tileHeight: 100, gap: 20, count: 5 })
+    expect(rects[0].y).toBe(rects[1].y)
+    expect(rects[1].y).toBe(rects[2].y)
+    expect(rects[3].y).toBeGreaterThan(rects[0].y) // tile 3 wraps to row 2
   })
 })
 

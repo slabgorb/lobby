@@ -34,6 +34,16 @@ export interface GridSpec {
 const DEFAULT_GAP = 24
 
 /**
+ * The column count a grid of `count` tiles gets when the caller doesn't pick one:
+ * a roughly-square `ceil(sqrt(count))`. Exported as the single source of truth so
+ * the rendered grid ({@link tileGrid}) and the selection cursor
+ * ({@link import('./selection').moveSelection}) always agree on the column count.
+ */
+export function defaultColumns(count: number): number {
+  return Math.ceil(Math.sqrt(count))
+}
+
+/**
  * Place `count` uniform tiles in a centred grid, row-major. The grid block is
  * centred within `width` × `height`, so leftover space splits into symmetric
  * margins. Returns `[]` for a zero count; throws on a negative count or a
@@ -44,7 +54,7 @@ export function tileGrid(spec: Readonly<GridSpec>): TileRect[] {
   if (count < 0) throw new RangeError(`tileGrid: count must be >= 0, got ${count}`)
   if (count === 0) return []
 
-  const columns = spec.columns ?? Math.ceil(Math.sqrt(count))
+  const columns = spec.columns ?? defaultColumns(count)
   if (columns <= 0) throw new RangeError(`tileGrid: columns must be > 0, got ${columns}`)
   const gap = spec.gap ?? DEFAULT_GAP
 

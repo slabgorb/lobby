@@ -99,3 +99,67 @@ describe('drawTiles', () => {
     expect(glowText).not.toHaveBeenCalled()
   })
 })
+
+describe('drawTiles — selection highlight (story 7-4)', () => {
+  const games: Game[] = [
+    { id: 'tempest', title: 'TEMPEST', launchUrl: '/tempest/', color: '#00eaff' },
+    { id: 'star-wars', title: 'STAR WARS', launchUrl: '/star-wars/', color: '#ffe000' },
+    { id: 'lunar', title: 'LUNAR', launchUrl: '/lunar/', color: '#ff0066' },
+  ]
+  const rects: TileRect[] = [
+    { x: 0, y: 0, w: 100, h: 60 },
+    { x: 120, y: 0, w: 100, h: 60 },
+    { x: 240, y: 0, w: 100, h: 60 },
+  ]
+
+  // 6th arg of each glowRect call is the GlowStyle.
+  const rectStyles = () =>
+    vi.mocked(glowRect).mock.calls.map((c) => c[5] as { blur?: number; width?: number })
+
+  it('outlines every tile regardless of selection', () => {
+    drawTiles(makeCtx(), games, rects, 1)
+    expect(glowRect).toHaveBeenCalledTimes(3)
+    expect(glowText).toHaveBeenCalledTimes(3)
+  })
+
+  it('gives the selected tile a stronger glow than the rest', () => {
+    drawTiles(makeCtx(), games, rects, 1)
+    const styles = rectStyles()
+    const selected = styles[1]
+    const others = [styles[0], styles[2]]
+    // Pin the exact boosted values (tiles.ts SELECTED_BLUR / SELECTED_WIDTH) so a
+    // regression to a weak or zero highlight is caught — a relational ">0" check
+    // would pass for any positive constant, even an invisible one.
+    expect(selected.blur).toBe(24)
+    expect(selected.width).toBe(4)
+    // ...while the unselected tiles carry no boosted glow (plain default outline).
+    for (const o of others) {
+      expect(o.blur).toBeUndefined()
+      expect(o.width).toBeUndefined()
+    }
+  })
+
+  it('keeps every tile outline coloured to its own game', () => {
+    drawTiles(makeCtx(), games, rects, 1)
+    const colours = vi.mocked(glowRect).mock.calls.map((c) => (c[5] as { color: string }).color)
+    // Highlighting tile 1 doesn't recolour any tile — each keeps its game colour.
+    expect(colours).toEqual(['#00eaff', '#ffe000', '#ff0066'])
+  })
+
+  it('highlights nothing when the selected index is out of range (-1)', () => {
+    drawTiles(makeCtx(), games, rects, -1)
+    // No tile gets the boosted glow — every outline is the plain default style.
+    for (const s of rectStyles()) {
+      expect(s.blur).toBeUndefined()
+      expect(s.width).toBeUndefined()
+    }
+  })
+
+  it('defaults to no selection when the index is omitted', () => {
+    drawTiles(makeCtx(), games, rects)
+    for (const s of rectStyles()) {
+      expect(s.blur).toBeUndefined()
+      expect(s.width).toBeUndefined()
+    }
+  })
+})

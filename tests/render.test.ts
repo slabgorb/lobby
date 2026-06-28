@@ -35,6 +35,7 @@ function makeCtx() {
     shadowBlur: -1,
     lineWidth: -1,
     font: '',
+    letterSpacing: '0px',
     textAlign: 'left',
     textBaseline: 'alphabetic',
     globalCompositeOperation: 'source-over',
@@ -73,7 +74,7 @@ function makeCtx() {
   // glowText's 'lighter' blend would appear to leak past its restore().
   const styleKeys = [
     'strokeStyle', 'fillStyle', 'shadowColor', 'shadowBlur', 'lineWidth',
-    'font', 'textAlign', 'textBaseline', 'globalCompositeOperation',
+    'font', 'letterSpacing', 'textAlign', 'textBaseline', 'globalCompositeOperation',
   ] as const
   const stack: Record<string, unknown>[] = []
   base.save = vi.fn(() => {
@@ -279,5 +280,31 @@ describe('glowText', () => {
     glowText(ctx, 'HI', 0, 0, { color: '#00eaff', fill: '#ffffff', blur: 10 })
     expect(base.fillStyle).toBe('#ffffff')
     expect(base.shadowColor).toBe('#00eaff')
+  })
+
+  // The shared arcade text treatment (matching tempest/star-wars): the Vector
+  // Battle ROM face is caps-only and a tight monoline, so render it uppercase
+  // with ~0.1em tracking for the airy marquee look that helps thin caps read.
+  it('renders text uppercase (Vector Battle is caps-only)', () => {
+    const { ctx, base } = makeCtx()
+    glowText(ctx, 'tempest', 10, 20, { color: '#00eaff', blur: 0 })
+    expect(base.fillText).toHaveBeenCalledWith('TEMPEST', 10, 20)
+  })
+
+  it('tracks letters to ~0.1em of the font size, overwriting (not restoring) prior tracking', () => {
+    const { ctx, base } = makeCtx()
+    base.font = "900 100px 'Vector Battle', 'Orbitron', monospace"
+    base.letterSpacing = '5px' // a value the caller had set before
+    glowText(ctx, 'ARCADE', 0, 0, { color: '#00eaff', blur: 0 })
+    // Intentional persistent treatment (see glowText JSDoc): the prior value is
+    // replaced by the derived ~0.1em tracking and deliberately not restored.
+    expect(base.letterSpacing).toBe('10.00px') // 100px * 0.1
+  })
+
+  it('falls back to a 16px-derived tracking when the font has no px size', () => {
+    const { ctx, base } = makeCtx()
+    base.font = ''
+    glowText(ctx, 'ARCADE', 0, 0, { color: '#00eaff', blur: 0 })
+    expect(base.letterSpacing).toBe('1.60px') // 16px default * 0.1
   })
 })
