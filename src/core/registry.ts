@@ -17,10 +17,12 @@ export interface Game {
 
 /**
  * Every game the lobby lists. Tempest is the cabinet's first title (served under
- * /tempest/); more games join here as their subrepos become servable.
+ * /tempest/); Star Wars joins it under /star-wars/. More games join here as
+ * their subrepos become servable.
  */
 export const GAMES: readonly Game[] = [
   { id: 'tempest', title: 'TEMPEST', launchUrl: '/tempest/', color: '#00eaff' },
+  { id: 'star-wars', title: 'STAR WARS', launchUrl: '/star-wars/', color: '#ffe81f' },
 ]
 
 /** Look up a game by id; `undefined` when no game matches. */

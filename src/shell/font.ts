@@ -13,8 +13,8 @@
 //            commercial license must be purchased if this project ever goes
 //            commercial.
 //
-// The face is a CAPS-ONLY monoline vector ROM font: callers render text uppercase
-// (render.ts's glowText uppercases for us).
+// The face is a CAPS-ONLY monoline vector ROM font; the lobby's CSS uppercases
+// text (text-transform) so labels render in the ROM caps.
 
 export const UI_FONT_FAMILY = 'Vector Battle'
 
@@ -23,10 +23,10 @@ export const UI_FONT_FAMILY = 'Vector Battle'
 // hardcoded.
 const FONT_URL = `${import.meta.env.BASE_URL}fonts/VectorBattle-e9XO.ttf`
 
-// Best-effort load: on any failure (missing API, blocked/absent file) the canvas
-// keeps rendering with the 'Orbitron', monospace fallback already baked into every
-// font string in main.ts, so the lobby is never blocked by the font. Resolves to
-// whether the face is now available, so the caller can repaint once it lands.
+// Best-effort load: on any failure (missing API, blocked/absent file) the page
+// keeps rendering with the 'Orbitron', monospace fallback in the CSS font-family
+// chain, so the lobby is never blocked by the font. Resolves to whether the face
+// is now available (the caller can ignore it — CSS swaps the font in on load).
 export async function loadVectorFont(): Promise<boolean> {
   // FontFace / document.fonts are absent in non-DOM contexts and very old
   // browsers; degrade to the fallback rather than throwing at boot.
