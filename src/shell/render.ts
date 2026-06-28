@@ -34,7 +34,7 @@ const DEFAULT_WIDTH = 2
  * canvas state: every primitive here routes through it, and callers drawing a
  * custom path can call it directly before their own `beginPath`/`stroke`.
  */
-export function applyGlow(ctx: CanvasRenderingContext2D, style: GlowStyle): void {
+export function applyGlow(ctx: CanvasRenderingContext2D, style: Readonly<GlowStyle>): void {
   ctx.strokeStyle = style.color
   ctx.fillStyle = style.fill ?? style.color
   ctx.shadowColor = style.color
@@ -58,7 +58,7 @@ export function resetGlow(ctx: CanvasRenderingContext2D): void {
 export function glowStroke(
   ctx: CanvasRenderingContext2D,
   points: readonly Point[],
-  style: GlowStyle,
+  style: Readonly<GlowStyle>,
   closed = false,
 ): void {
   if (points.length < 2) return
@@ -76,7 +76,7 @@ export function glowStroke(
 export function glowFill(
   ctx: CanvasRenderingContext2D,
   points: readonly Point[],
-  style: GlowStyle,
+  style: Readonly<GlowStyle>,
 ): void {
   if (points.length < 3) return
   applyGlow(ctx, style)
@@ -96,7 +96,7 @@ export function glowRect(
   y: number,
   w: number,
   h: number,
-  style: GlowStyle,
+  style: Readonly<GlowStyle>,
 ): void {
   glowStroke(
     ctx,
@@ -123,7 +123,7 @@ export function glowText(
   text: string,
   x: number,
   y: number,
-  style: GlowStyle,
+  style: Readonly<GlowStyle>,
 ): void {
   const blur = style.blur ?? DEFAULT_BLUR
   ctx.fillStyle = style.fill ?? style.color

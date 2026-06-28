@@ -62,7 +62,11 @@ function makeCtx() {
   }
   base.stroke = vi.fn(() => snap('stroke', []))
   base.fill = vi.fn(() => snap('fill', []))
-  base.fillText = vi.fn((...args: unknown[]) => snap('fillText', args))
+  // Real signature is fillText(text, x, y, maxWidth?); glowText never passes
+  // maxWidth, so the three-arg form mirrors the calls under test.
+  base.fillText = vi.fn((text: string, x: number, y: number) =>
+    snap('fillText', [text, x, y]),
+  )
 
   // Model the real canvas save/restore stack for the mutable style props, so a
   // restore() actually rolls back state the way a browser would. Without this,
@@ -80,6 +84,12 @@ function makeCtx() {
     if (saved) for (const k of styleKeys) (base as Record<string, unknown>)[k] = saved[k]
   })
 
+  // `as unknown as` is the idiomatic cast for a partial Canvas mock: this stub
+  // implements only the ~18 members render.ts touches, not the full ~200-member
+  // interface, and CanvasRenderingContext2D's overloaded methods (stroke/fill
+  // take an optional Path2D) make a Pick<> stub reject our `() => void` impls.
+  // The production functions still see a real CanvasRenderingContext2D type, so
+  // any wrong-typed canvas call in render.ts is caught at the call site.
   const ctx = base as unknown as CanvasRenderingContext2D
   return { ctx, base, draws }
 }
@@ -184,6 +194,10 @@ describe('glowFill', () => {
       [{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 4 }],
       { color: '#114', fill: '#229', blur: 6 },
     )
+    // Geometry: moveTo the first point, lineTo the rest (matching glowStroke/glowRect coverage).
+    expect(base.moveTo).toHaveBeenCalledWith(0, 0)
+    expect(base.lineTo).toHaveBeenNthCalledWith(1, 4, 0)
+    expect(base.lineTo).toHaveBeenNthCalledWith(2, 4, 4)
     expect(base.closePath).toHaveBeenCalledTimes(1)
     expect(base.fill).toHaveBeenCalledTimes(1)
     expect(draws).toHaveLength(1)
@@ -241,6 +255,14 @@ describe('glowText', () => {
     for (const p of passes) expect(p.args).toEqual(['ARCADE', 100, 50])
     // Final canvas state is halo-free.
     expect(base.shadowBlur).toBe(0)
+  })
+
+  it('falls back to DEFAULT_BLUR for the bloom when blur is omitted', () => {
+    const { ctx, draws } = makeCtx()
+    glowText(ctx, 'X', 0, 0, { color: '#fff' }) // no blur → ?? DEFAULT_BLUR (8)
+    const passes = draws.filter((d) => d.method === 'fillText')
+    expect(passes).toHaveLength(3) // bloom branch fires under the default blur
+    expect(passes[0].shadowBlur).toBe(12) // DEFAULT_BLUR (8) * 1.5
   })
 
   it('draws a single crisp pass with no bloom when blur is zero', () => {
