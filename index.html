@@ -47,18 +47,19 @@
         max-width: 70rem;
       }
       /* Each tile is a real link. The per-game glow colour comes from --glow,
-         set inline from the registry entry. */
+         set inline from the registry entry. Title and score stack as a centred
+         column; colour and text-shadow are inherited, so both lines glow. */
       .tile {
         --glow: var(--fg);
         flex: 0 1 18rem;
         min-height: 9rem;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 0.6rem;
         padding: 1.5rem;
         font-weight: 700;
-        font-size: clamp(1.25rem, 3.5vw, 2.25rem);
-        letter-spacing: 0.15em;
         text-align: center;
         text-decoration: none;
         text-transform: uppercase;
@@ -69,6 +70,18 @@
         box-shadow: 0 0 0.4em var(--glow), inset 0 0 0.5em color-mix(in srgb, var(--glow) 30%, transparent);
         text-shadow: 0 0 0.25em var(--glow);
         transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+      }
+      /* Primary line: the game name, in the big vector face. */
+      .tile-title {
+        font-size: clamp(1.25rem, 3.5vw, 2.25rem);
+        letter-spacing: 0.15em;
+      }
+      /* Secondary line: the per-game best score, smaller and a touch dimmer so it
+         reads as a subtitle without losing the inherited glow. */
+      .tile-score {
+        font-size: clamp(0.7rem, 1.6vw, 1rem);
+        letter-spacing: 0.2em;
+        opacity: 0.8;
       }
       .tile:hover,
       .tile:focus-visible {
