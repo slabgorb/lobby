@@ -23,6 +23,7 @@ export interface Game {
 export const GAMES: readonly Game[] = [
   { id: 'tempest', title: 'TEMPEST', launchUrl: '/tempest/', color: '#00eaff' },
   { id: 'star-wars', title: 'STAR WARS', launchUrl: '/star-wars/', color: '#ffe81f' },
+  { id: 'asteroids', title: 'ASTEROIDS', launchUrl: '/asteroids/', color: '#ff6a00' },
 ]
 
 /** Look up a game by id; `undefined` when no game matches. */
