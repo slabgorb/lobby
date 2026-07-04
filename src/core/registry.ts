@@ -13,6 +13,8 @@ export interface Game {
   launchUrl: string
   /** Glow colour for the tile outline/label (hex). */
   color: string
+  /** Short keybinding hints shown on the tile, one line per control. */
+  controls: readonly string[]
 }
 
 /**
@@ -22,10 +24,34 @@ export interface Game {
  * servable. Entries are ordered by pinned port (5273, 5274, 5275, 5276).
  */
 export const GAMES: readonly Game[] = [
-  { id: 'tempest', title: 'TEMPEST', launchUrl: '/tempest/', color: '#00eaff' },
-  { id: 'star-wars', title: 'STAR WARS', launchUrl: '/star-wars/', color: '#ffe81f' },
-  { id: 'asteroids', title: 'ASTEROIDS', launchUrl: '/asteroids/', color: '#ff6a00' },
-  { id: 'battlezone', title: 'BATTLEZONE', launchUrl: '/battlezone/', color: '#00ff41' },
+  {
+    id: 'tempest',
+    title: 'TEMPEST',
+    launchUrl: '/tempest/',
+    color: '#00eaff',
+    controls: ['ROTATE — Wheel / ←→', 'FIRE — Click / Space'],
+  },
+  {
+    id: 'star-wars',
+    title: 'STAR WARS',
+    launchUrl: '/star-wars/',
+    color: '#ffe81f',
+    controls: ['AIM — Mouse', 'FIRE — Click / Space'],
+  },
+  {
+    id: 'asteroids',
+    title: 'ASTEROIDS',
+    launchUrl: '/asteroids/',
+    color: '#ff6a00',
+    controls: ['ROTATE/THRUST — ←→↑ / WASD', 'FIRE — Space / K'],
+  },
+  {
+    id: 'battlezone',
+    title: 'BATTLEZONE',
+    launchUrl: '/battlezone/',
+    color: '#00ff41',
+    controls: ['DRIVE — Arrows / E D I K', 'FIRE — Space / F'],
+  },
 ]
 
 /** Look up a game by id; `undefined` when no game matches. */

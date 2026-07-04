@@ -34,6 +34,18 @@ for (const game of GAMES) {
   score.textContent = top === null ? 'NO SCORE' : `HI SCORE ${top}`
   tile.append(score)
 
+  // Keybinding hints, one per control, so a first-time player knows how to
+  // play before ever launching the game.
+  const controls = document.createElement('span')
+  controls.className = 'tile-controls'
+  for (const line of game.controls) {
+    const control = document.createElement('span')
+    control.className = 'tile-control'
+    control.textContent = line
+    controls.append(control)
+  }
+  tile.append(controls)
+
   games.append(tile)
 }
 

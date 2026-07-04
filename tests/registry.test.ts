@@ -43,6 +43,15 @@ describe('GAMES registry', () => {
       expect(g.color).toMatch(HEX)
     }
   })
+
+  it('gives every game at least one non-empty control hint', () => {
+    for (const g of GAMES) {
+      expect(g.controls.length).toBeGreaterThan(0)
+      for (const line of g.controls) {
+        expect(line.length).toBeGreaterThan(0)
+      }
+    }
+  })
 })
 
 describe('getGame', () => {
@@ -67,13 +76,14 @@ describe('getGame', () => {
 // required field is dropped from the type this stops type-checking, and if the
 // field set drifts this test documents the contract the renderer relies on.
 describe('Game shape', () => {
-  it('requires id, title, launchUrl, and color', () => {
+  it('requires id, title, launchUrl, color, and controls', () => {
     const sample: Game = {
       id: 'sample',
       title: 'SAMPLE',
       launchUrl: '/sample/',
       color: '#00eaff',
+      controls: ['FIRE — Space'],
     }
-    expect(Object.keys(sample).sort()).toEqual(['color', 'id', 'launchUrl', 'title'])
+    expect(Object.keys(sample).sort()).toEqual(['color', 'controls', 'id', 'launchUrl', 'title'])
   })
 })
