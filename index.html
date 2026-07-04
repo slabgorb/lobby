@@ -83,6 +83,21 @@
         letter-spacing: 0.2em;
         opacity: 0.8;
       }
+      /* Keybinding hints: one line per control, quietest text on the card so it
+         reads as a footnote rather than competing with the title/score. */
+      .tile-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        margin-top: 0.2rem;
+      }
+      .tile-control {
+        font-size: clamp(0.6rem, 1.3vw, 0.8rem);
+        letter-spacing: 0.08em;
+        text-transform: none;
+        font-weight: 500;
+        opacity: 0.6;
+      }
       .tile:hover,
       .tile:focus-visible {
         transform: scale(1.04);
