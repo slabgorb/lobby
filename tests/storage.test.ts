@@ -78,7 +78,15 @@ describe('getTopScore', () => {
 
   it('drops malformed rows and returns the max of the valid ones', () => {
     // A mix of junk (no score, non-numeric score, non-object) plus two real rows.
-    const mixed = JSON.stringify([{ name: 'AAA' }, { score: 'x' }, 42, { score: 1500 }, { score: 700 }])
+    // SH-4: "valid" is now the shared isHighScoreRow guard — a string name + a
+    // finite score — the exact shape the games write, so the real rows are named.
+    const mixed = JSON.stringify([
+      { name: 'AAA' },
+      { score: 'x' },
+      42,
+      { name: 'BBB', score: 1500, level: 3 },
+      { name: 'CCC', score: 700, level: 1 },
+    ])
     vi.stubGlobal('localStorage', fakeStorage({ 'tempest-high-scores': mixed }))
     expect(getTopScore('tempest')).toBe(1500)
   })
