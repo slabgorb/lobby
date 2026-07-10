@@ -9,7 +9,7 @@ export interface Game {
   id: string
   /** Display label shown on the tile. */
   title: string
-  /** Root-relative path the tile launches to (e.g. '/tempest/'). */
+  /** Absolute URL the tile launches to (e.g. 'https://tempest.slabgorb.com/'). */
   launchUrl: string
   /** Glow colour for the tile outline/label (hex). */
   color: string
@@ -18,39 +18,45 @@ export interface Game {
 }
 
 /**
- * Every game the lobby lists. Tempest is the cabinet's first title (served under
- * /tempest/); Star Wars joins it under /star-wars/; Asteroids under /asteroids/;
- * Battlezone under /battlezone/. More games join here as their subrepos become
- * servable. Entries are ordered by pinned port (5273, 5274, 5275, 5276).
+ * Every game the lobby lists, each launched on its own subdomain
+ * (<slug>.slabgorb.com) served from R2: Tempest, Star Wars, Asteroids,
+ * Battlezone, Red Baron. More games join here as their subrepos become servable.
  */
 export const GAMES: readonly Game[] = [
   {
     id: 'tempest',
     title: 'TEMPEST',
-    launchUrl: '/tempest/',
+    launchUrl: 'https://tempest.slabgorb.com/',
     color: '#00eaff',
     controls: ['ROTATE — Wheel / ←→', 'FIRE — Click / Space'],
   },
   {
     id: 'star-wars',
     title: 'STAR WARS',
-    launchUrl: '/star-wars/',
+    launchUrl: 'https://star-wars.slabgorb.com/',
     color: '#ffe81f',
     controls: ['AIM — Mouse', 'FIRE — Click / Space'],
   },
   {
     id: 'asteroids',
     title: 'ASTEROIDS',
-    launchUrl: '/asteroids/',
+    launchUrl: 'https://asteroids.slabgorb.com/',
     color: '#ff6a00',
     controls: ['ROTATE/THRUST — ←→↑ / WASD', 'FIRE — Space / K'],
   },
   {
     id: 'battlezone',
     title: 'BATTLEZONE',
-    launchUrl: '/battlezone/',
+    launchUrl: 'https://battlezone.slabgorb.com/',
     color: '#00ff41',
     controls: ['DRIVE — Arrows / E D I K', 'FIRE — Space / F'],
+  },
+  {
+    id: 'red-baron',
+    title: 'RED BARON',
+    launchUrl: 'https://red-baron.slabgorb.com/',
+    color: '#ff2b2b',
+    controls: ['BANK — ←→ / A D', 'CLIMB/DIVE — ↑↓ / W S'],
   },
 ]
 

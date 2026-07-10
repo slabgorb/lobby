@@ -14,11 +14,12 @@ describe('GAMES registry', () => {
     expect(GAMES.length).toBeGreaterThan(0)
   })
 
-  it('includes tempest, launching at its served path', () => {
+  it('includes tempest, launching at its subdomain', () => {
     const tempest = GAMES.find((g) => g.id === 'tempest')
     expect(tempest).toBeDefined()
-    // Tempest is served under /tempest/ (CLAUDE.md); the tile must launch there.
-    expect(tempest?.launchUrl).toBe('/tempest/')
+    // Tempest is served on its own subdomain (R2 static hosting); the tile
+    // must launch there.
+    expect(tempest?.launchUrl).toBe('https://tempest.slabgorb.com/')
   })
 
   it('has unique ids across every entry', () => {
@@ -32,9 +33,9 @@ describe('GAMES registry', () => {
     }
   })
 
-  it('points every launchUrl at a root-relative path', () => {
+  it('points every launchUrl at an absolute subdomain URL', () => {
     for (const g of GAMES) {
-      expect(g.launchUrl.startsWith('/')).toBe(true)
+      expect(g.launchUrl.startsWith('https://')).toBe(true)
     }
   })
 
