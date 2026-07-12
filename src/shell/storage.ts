@@ -1,57 +1,33 @@
 // src/shell/storage.ts
 //
-// Shell-side READ of the per-game high-score table the games persist in
-// localStorage, so the lobby can surface each game's best score on its tile.
-// This is IO (shell), not data (core): main.ts calls it once per tile. Every
-// failure mode (missing key, unavailable storage, corrupt JSON, malformed rows)
-// degrades to null — a tile with no readable score just shows "NO SCORE", it
-// never throws and never blocks the page.
+// Shell-side READ of each game's best score, so the lobby can surface it on the tile.
+// This is IO (shell), not data (core): main.ts calls it once per tile.
 //
-// SH-4: the key scheme (`${gameId}-high-scores`) and the row shape are no longer
-// a hand-copied MIRROR of the games' storage — they are IMPORTED from
-// @arcade/shared/highscore, the same module the games write with. `highScoreKey`
-// and `isHighScoreRow` are now a compile-time contract shared with every game,
-// so the tile can never silently drift from the key/shape the games persist.
+// lb2-2 / ADR-0004 — WHY THIS NO LONGER READS localStorage.
+//
+// It used to read `localStorage.getItem(`${gameId}-high-scores`)`, the very key the games
+// write. Same key, DIFFERENT ORIGIN: the lobby is served from arcade.slabgorb.com and each
+// game from <game>.slabgorb.com (six R2 buckets, six custom domains). localStorage is
+// partitioned by origin, so the lobby was reading a store no game had ever written — every
+// tile fell through to NO SCORE, or to a stale value left on the lobby's own origin during
+// same-origin dev, which is the "frozen wrong number" players were seeing.
+//
+// The games now publish their top score to a cookie on the shared parent domain, which
+// every subdomain can read. That publish/read pair lives in @arcade/shared/highscore behind
+// a narrow interface, so the transport stays swappable: if the cabinet is ever collapsed
+// onto one origin (rejected on cost, not merit), that is one adapter change in the shared
+// library and NOT a change here.
+//
+// So this module deliberately owns no transport of its own: it does no cookie parsing, and
+// it must not start — that belongs to the shared adapter, and a source rule in
+// tests/storage.test.ts holds the line. Every failure mode still degrades to null: a tile
+// with no readable score shows "NO SCORE", never throws, and never blocks the page.
 
-import { highScoreKey, isHighScoreRow } from '@arcade/shared/highscore'
+import { readTopScore } from '@arcade/shared/highscore'
 
-// Access localStorage defensively: in private-browsing / sandboxed contexts even
-// *reading* the global can throw, and in the node test env it is simply absent.
-function getStorage(): Storage | null {
-  try {
-    return globalThis.localStorage ?? null
-  } catch {
-    return null
-  }
-}
-
-// The single best score a game has stored, or null when there is none to show.
-// The games persist their tables sorted descending, but we take the max of the
-// valid rows rather than trusting table[0]: corrupt or unsorted data still yields
-// the true top score instead of a wrong one. A row counts only if it passes the
-// shared `isHighScoreRow` guard (a string name + a finite numeric score) — the
-// exact rows the games write.
+// The single best score a game has published, or null when there is none to show.
+// A game that has never been played on this browser (and red-baron, which persists no
+// scores at all) honestly reads null rather than inventing a number.
 export function getTopScore(gameId: string): number | null {
-  const storage = getStorage()
-  if (!storage) return null
-
-  let raw: string | null
-  try {
-    raw = storage.getItem(highScoreKey(gameId))
-  } catch {
-    return null
-  }
-  if (raw === null) return null
-
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(raw)
-  } catch {
-    return null
-  }
-  if (!Array.isArray(parsed)) return null
-
-  const scores = parsed.filter(isHighScoreRow).map((row) => row.score)
-  if (scores.length === 0) return null
-  return Math.max(...scores)
+  return readTopScore(gameId)
 }
