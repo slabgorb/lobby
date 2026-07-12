@@ -107,3 +107,54 @@ describe('lobby bootstrap', () => {
     expect(tiles[0]?.textContent).toContain('NO SCORE')
   })
 })
+
+// lb2-9. A perfect models.ts and a perfect modelBay.ts can both be green while the real
+// cabinet shows five empty recesses — all it takes is a bootstrap that never mounts them.
+// This drives the actual boot and asserts the bays are filled.
+describe('lobby bootstrap — the model bays are filled at boot (lb2-9)', () => {
+  // jsdom implements no canvas, so getContext('2d') answers null and the model bay
+  // (correctly) declines to leave a dead canvas behind. Stub a context in so the wiring
+  // is observable — the drawing itself goes through the REAL @arcade/shared/glow here.
+  function stubCanvasContext(): void {
+    const ctx = {
+      clearRect: () => {},
+      setTransform: () => {},
+      scale: () => {},
+      translate: () => {},
+      beginPath: () => {},
+      moveTo: () => {},
+      lineTo: () => {},
+      closePath: () => {},
+      stroke: () => {},
+      save: () => {},
+      restore: () => {},
+      strokeStyle: '',
+      lineWidth: 1,
+      shadowColor: '',
+      shadowBlur: 0,
+    }
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+      () => ctx as unknown as CanvasRenderingContext2D,
+    )
+  }
+
+  it('mounts a model canvas into every tile bay', async () => {
+    stubCanvasContext()
+    vi.stubGlobal('localStorage', fakeStorage())
+    await import('../src/main')
+
+    const canvases = document.querySelectorAll('#games [data-model-slot] canvas')
+    expect(canvases.length).toBe(GAMES.length)
+  })
+
+  // The bays are decoration mounted at boot; a game the lobby cannot draw is not a reason
+  // to show the visitor a black screen where the grid should be.
+  it('still comes up when the browser hands back no 2D context', async () => {
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => null)
+    vi.stubGlobal('localStorage', fakeStorage())
+    await import('../src/main')
+
+    expect(document.querySelectorAll('#games a').length).toBe(GAMES.length)
+    expect(document.querySelector('#games canvas')).toBeNull()
+  })
+})

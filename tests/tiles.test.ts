@@ -121,8 +121,14 @@ describe('buildTile — model slot (the seam lb2-9 draws into)', () => {
   // lb2-7 reserves the slot; it does not fill it. The design's placeholder (a ◈
   // glyph plus a label like "BLASTER") is deliberately NOT shipped — a dashed box
   // captioned with a word that is not a score, a title, or a model is just noise on
-  // a production cabinet. lb2-9 draws the real vector model in here.
-  it('leaves the slot empty for lb2-9', () => {
+  // a production cabinet.
+  //
+  // lb2-9 fills the bay, and does it in a SEPARATE pass (`mountModels`, shell/modelBay.ts)
+  // rather than here. That split is the whole reason `refreshScores` can rewrite a score
+  // line on return from a game without throwing the models away: the build path only ever
+  // lays out structure. So this assertion is not a placeholder waiting to be deleted — it
+  // is the build path's standing contract, and model-bay.test.ts pins the other half.
+  it('reserves the bay but does not fill it — mountModels does that', () => {
     const tile = buildTile(SYNTHETIC, null)
     const slot = tile.querySelector('[data-model-slot]') as HTMLElement
     expect(slot.children.length).toBe(0)
