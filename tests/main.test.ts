@@ -149,11 +149,19 @@ describe('lobby bootstrap — the model bays are filled at boot (lb2-9)', () => 
 
   // The bays are decoration mounted at boot; a game the lobby cannot draw is not a reason
   // to show the visitor a black screen where the grid should be.
+  //
+  // The getContext spy is what makes this test mean anything. Without it, "no canvas on the
+  // page" is equally true of a lobby that tried to draw and declined, and of a lobby that
+  // never wired the mount pass up at all — deleting mountModels() from main.ts would leave
+  // it green. Asserting the mount pass ASKED for a context proves it ran and then degraded.
   it('still comes up when the browser hands back no 2D context', async () => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => null)
+    const getContext = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockImplementation(() => null)
     vi.stubGlobal('localStorage', fakeStorage())
     await import('../src/main')
 
+    expect(getContext).toHaveBeenCalled()
     expect(document.querySelectorAll('#games a').length).toBe(GAMES.length)
     expect(document.querySelector('#games canvas')).toBeNull()
   })

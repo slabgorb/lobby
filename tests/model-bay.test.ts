@@ -38,6 +38,7 @@ vi.mock('@arcade/shared/glow', () => ({
 
 import { mountModels } from '../src/shell/modelBay'
 import { refreshScores, renderTiles } from '../src/shell/tiles'
+import { getTileModel } from '../src/core/models'
 import { GAMES, type Game } from '../src/core/registry'
 
 // A game the lobby lists but has no hero model for — the degrade path.
@@ -57,7 +58,7 @@ const SYNTHETIC: Game = {
 // alongside it: TS2300, duplicate identifier — tsc catches it, vitest does not.)
 // ---------------------------------------------------------------------------
 interface RecordingContext {
-  readonly shadowBlurWrites: number[]
+  readonly shadowBlurWrites: readonly number[]
   readonly strokeCalls: number
 }
 
@@ -177,10 +178,38 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+/** One call to the shared glow subpath: the geometry, the style, and the ring flag. */
+interface GlowDraw {
+  readonly points: readonly (readonly [number, number])[]
+  readonly style: GlowStyle
+  readonly closed: boolean
+}
+
+/** Every draw the shell handed to the shared glow subpath, in the order it made them. */
+function glowDraws(): GlowDraw[] {
+  return glow.glowPolyline.mock.calls.map((call) => ({
+    points: call[1] as readonly (readonly [number, number])[],
+    style: call[2] as GlowStyle,
+    closed: call[3] as boolean,
+  }))
+}
+
 /** Every GlowStyle the shell handed to the shared glow subpath. */
 function glowStyles(): GlowStyle[] {
-  return glow.glowPolyline.mock.calls.map((call) => call[2] as GlowStyle)
+  return glowDraws().map((draw) => draw.style)
 }
+
+/** Render one game alone, so every recorded draw provably belongs to it. */
+function mountSolo(game: Game): HTMLCanvasElement {
+  glow.glowPolyline.mockReset()
+  document.body.innerHTML = '<nav id="games"></nav>'
+  const solo = document.getElementById('games') as HTMLElement
+  renderTiles(solo, [game], () => null)
+  mountModels(solo)
+  return solo.querySelector('canvas') as HTMLCanvasElement
+}
+
+const span = (values: readonly number[]): number => Math.max(...values) - Math.min(...values)
 
 describe('mountModels — a real vector model in every bay', () => {
   it('draws a model into every tile bay on the row', () => {
@@ -190,23 +219,19 @@ describe('mountModels — a real vector model in every bay', () => {
     expect(container.querySelectorAll('[data-model-slot] canvas').length).toBe(GAMES.length)
   })
 
-  it('actually strokes geometry — a mounted canvas that draws nothing is just an empty box', () => {
+  it('strokes every path of every model — not one polyline fewer', () => {
     renderTiles(container, GAMES, () => null)
     mountModels(container)
 
-    // At least one polyline per cabinet. A model bay that mounts a blank canvas passes
-    // every structural assertion above and still leaves the row looking like lb2-7.
-    expect(glow.glowPolyline.mock.calls.length).toBeGreaterThanOrEqual(GAMES.length)
+    // The exact number of paths the five models are made of. `>= GAMES.length` would let a
+    // bay draw one stroke and drop the rest of its model on the floor.
+    const expected = GAMES.reduce((n, game) => n + (getTileModel(game.id)?.paths.length ?? 0), 0)
+    expect(glow.glowPolyline.mock.calls.length).toBe(expected)
   })
 
   it('draws each game in its own registry glow colour', () => {
     for (const game of GAMES) {
-      glow.glowPolyline.mockReset()
-      document.body.innerHTML = '<nav id="games"></nav>'
-      const solo = document.getElementById('games') as HTMLElement
-
-      renderTiles(solo, [game], () => null)
-      mountModels(solo)
+      mountSolo(game)
 
       const strokes = glowStyles().map((style) => style.stroke)
       expect(strokes.length).toBeGreaterThan(0)
@@ -214,6 +239,70 @@ describe('mountModels — a real vector model in every bay', () => {
       // the source of truth for the glow, exactly as it is for the title and the href.
       expect([...new Set(strokes)]).toEqual([game.color])
     }
+  })
+})
+
+// The geometry has to actually ARRIVE. Counting calls and checking their colour proves a
+// canvas was talked to, not that a model was drawn on it: a transform that dropped its
+// scale factor (every model a 2px speck) or handed the glow an empty point list (every bay
+// blank, the whole story delivering nothing) makes exactly the same number of exactly the
+// same-coloured calls. Both of those shipped green past an earlier cut of this suite.
+//
+// So: pin the points themselves. Not by re-implementing the transform here — a test that
+// recomputes `half + x * scale` would agree with a wrong implementation as happily as a
+// right one — but by holding the drawn geometry to the properties a faithful render must
+// have, whatever arithmetic produced it.
+describe('mountModels — the model actually reaches the canvas', () => {
+  it.each([...GAMES])('$id: hands the glow its model, under one uniform scale into the bay', (game) => {
+    const model = getTileModel(game.id)
+    if (model === undefined) throw new Error(`no tile model for registry game ${game.id}`)
+
+    const canvas = mountSolo(game)
+    const size = canvas.width // dpr is 1 under jsdom, so the backing store IS the CSS box
+    const draws = glowDraws()
+
+    // One stroked path per authored path, each carrying every point, each closed exactly as
+    // authored. An empty or truncated point list dies here.
+    expect(draws.length).toBe(model.paths.length)
+    draws.forEach((draw, i) => {
+      expect(draw.points.length).toBe(model.paths[i].points.length)
+      expect(draw.closed).toBe(model.paths[i].closed)
+    })
+
+    const drawn = draws.flatMap((draw) => draw.points)
+    const authored = model.paths.flatMap((path) => path.points)
+    expect(drawn.length).toBeGreaterThan(0)
+
+    // Nothing is stroked off the surface — every point lands on the canvas it was given.
+    for (const [x, y] of drawn) {
+      expect(x).toBeGreaterThanOrEqual(0)
+      expect(x).toBeLessThanOrEqual(size)
+      expect(y).toBeGreaterThanOrEqual(0)
+      expect(y).toBeLessThanOrEqual(size)
+    }
+
+    // Derive the mapping the shell actually applied, from the extremes of what it drew...
+    const scaleX = span(drawn.map(([x]) => x)) / span(authored.map(([x]) => x))
+    const scaleY = span(drawn.map(([, y]) => y)) / span(authored.map(([, y]) => y))
+
+    // ...and hold it to the two things a faithful render owes the model. It must be UNIFORM
+    // (a model squashed on one axis is a different object) —
+    expect(scaleY).toBeCloseTo(scaleX, 6)
+
+    // — and it must be a hero object, not a speck. The bay is ~92px across and the model
+    // spans the unit box, so a real scale is tens of pixels per unit. A transform that lost
+    // its scale factor lands at 1.
+    expect(scaleX).toBeGreaterThan(size * 0.25)
+
+    // Finally: every single point must sit exactly where that one mapping says it should.
+    // This is what a mirrored, axis-swapped, reordered or partly-garbage render fails —
+    // each of which can otherwise reproduce the right count, colour, bounds and scale.
+    const offsetX = drawn[0][0] - scaleX * authored[0][0]
+    const offsetY = drawn[0][1] - scaleY * authored[0][1]
+    drawn.forEach(([x, y], i) => {
+      expect(x).toBeCloseTo(scaleX * authored[i][0] + offsetX, 6)
+      expect(y).toBeCloseTo(scaleY * authored[i][1] + offsetY, 6)
+    })
   })
 })
 
@@ -259,6 +348,12 @@ describe('mountModels — degrades to an empty bay, never to a broken one', () =
   })
 
   // The slot's id is a DOM string. It is data, not a key to trust (typescript rule #10).
+  //
+  // Read this as the INTEGRATION smoke test it is, not as proof of the Map: a hostile id
+  // fails `getGame`'s array scan before `getTileModel` is ever consulted, so this would
+  // pass even with the object-literal table src/core/models.ts warns against. The Map
+  // protection itself is proven directly next door, in tile-models.test.ts's prototype-key
+  // test. Both matter — this one pins that the shell asks, that one pins what it is told.
   it('does not trust the slot dataset — an id the registry never issued draws nothing', () => {
     container.innerHTML =
       '<a class="tile"><span class="tile-model" data-model-slot="toString" aria-hidden="true"></span></a>'
