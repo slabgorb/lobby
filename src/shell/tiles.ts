@@ -27,6 +27,11 @@ function line(className: string, text: string): HTMLSpanElement {
   return el
 }
 
+// The score line's class, and the `data-game` hook `refreshScores` finds a tile by.
+// Named once so the build path and the refresh path cannot drift apart on a string.
+const SCORE_CLASS = 'tile-score'
+const GAME_ATTR = 'data-game'
+
 /**
  * One tile for one game. The per-game glow colour rides on the `--glow` custom
  * property, so every glowing part of the tile (border, title, score, controls)
@@ -37,6 +42,9 @@ export function buildTile(game: Game, topScore: number | null): HTMLAnchorElemen
   tile.className = 'tile'
   tile.href = game.launchUrl
   tile.style.setProperty('--glow', game.color)
+  // Which game this tile speaks for. `refreshScores` needs to find the tile again long
+  // after it was built, and the href is a URL, not an id.
+  tile.setAttribute(GAME_ATTR, game.id)
 
   // The model bay: a recess in the cabinet, sized and positioned now but drawn into
   // later. lb2-9 renders the game's hero object (blaster, TIE fighter, asteroid,
@@ -50,7 +58,7 @@ export function buildTile(game: Game, topScore: number | null): HTMLAnchorElemen
   tile.append(slot)
 
   tile.append(line('tile-title', game.title))
-  tile.append(line('tile-score', formatScoreLine(topScore)))
+  tile.append(line(SCORE_CLASS, formatScoreLine(topScore)))
 
   const controls = document.createElement('span')
   controls.className = 'tile-controls'
@@ -66,9 +74,13 @@ export function buildTile(game: Game, topScore: number | null): HTMLAnchorElemen
  * Fill `container` with one tile per game, in registry order, asking `getScore` for
  * each game's best score by id.
  *
- * Replaces the grid rather than appending to it, so calling this twice — which
- * lb2-3 will, on returning from a game — refreshes the tiles instead of doubling
- * them.
+ * Replaces the grid rather than appending to it, so building twice cannot double the
+ * tiles. This is the BUILD path, and it runs once, at boot.
+ *
+ * It is deliberately NOT the refresh path. Re-calling this to pick up a new score would
+ * work, and would also throw away and recreate every tile: the anchors the player may
+ * have tabbed to, and the model bay contents lb2-9 draws into each slot. `refreshScores`
+ * below updates the tiles that already exist instead.
  */
 export function renderTiles(
   container: HTMLElement,
@@ -76,4 +88,28 @@ export function renderTiles(
   getScore: (id: string) => number | null,
 ): void {
   container.replaceChildren(...games.map((game) => buildTile(game, getScore(game.id))))
+}
+
+/**
+ * Re-read every tile's best score and update it in place. The one entry point for the
+ * refresh (lb2-3) — the tiles keep their identity, their focus and their model bays.
+ *
+ * Nothing is rebuilt: this walks the tiles the build path already put on the page and
+ * rewrites one line of text per tile, through the same `formatScoreLine` the build path
+ * uses. A game with nothing readable to show formats as NO SCORE, exactly as it does at
+ * boot — `null` travels all the way to the formatter, which is the only thing that
+ * decides what "no score" looks like. Coalescing it to a number here (`?? 0`) would put a
+ * confident, wrong zero on a cabinet that has no score at all.
+ */
+export function refreshScores(
+  container: HTMLElement,
+  getScore: (id: string) => number | null,
+): void {
+  for (const tile of container.querySelectorAll<HTMLElement>(`[${GAME_ATTR}]`)) {
+    const id = tile.getAttribute(GAME_ATTR)
+    if (id === null) continue
+    const score = tile.querySelector(`.${SCORE_CLASS}`)
+    if (score === null) continue
+    score.textContent = formatScoreLine(getScore(id))
+  }
 }
