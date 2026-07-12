@@ -8,7 +8,9 @@ import { GAMES } from '../src/core/registry'
 // import main.ts against a DOM, and assert the tiles actually land, with the real
 // registry and the real score reader behind them.
 
-// A minimal in-memory localStorage, seeded the way a game writes its table.
+// A minimal in-memory localStorage. The lobby no longer reads a game's table out of it
+// (lb2-2 / ADR-0004 — that store belongs to another origin and the lobby can never see it),
+// but main.ts still boots against a page that has one, so the stub stays.
 function fakeStorage(initial: Record<string, string> = {}): Storage {
   const store = new Map<string, string>(Object.entries(initial))
   return {
@@ -23,16 +25,29 @@ function fakeStorage(initial: Record<string, string> = {}): Storage {
   } as Storage
 }
 
-const table = (...scores: number[]) =>
-  JSON.stringify(scores.map((score, i) => ({ name: 'AAA', score, level: i + 1 })))
+// lb2-2: a game publishes its top score to a cookie on the shared parent domain — that
+// cookie is now the lobby's ONLY source for a tile's score. (No Domain attribute here:
+// jsdom serves from localhost, which is exactly the dev cabinet's host-only case.)
+function publishScore(gameId: string, score: number): void {
+  document.cookie = `arcade-hi-${gameId}=${score}; Path=/`
+}
+
+function clearPublishedScores(): void {
+  for (const pair of document.cookie.split(';')) {
+    const name = pair.split('=')[0]?.trim()
+    if (name) document.cookie = `${name}=; Path=/; Max-Age=0`
+  }
+}
 
 beforeEach(() => {
   vi.resetModules()
+  clearPublishedScores()
   document.body.innerHTML = '<nav id="games"></nav>'
 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  clearPublishedScores()
 })
 
 describe('lobby bootstrap', () => {
@@ -52,8 +67,15 @@ describe('lobby bootstrap', () => {
     expect(hrefs).toEqual(GAMES.map((g) => g.launchUrl))
   })
 
-  it('shows a real stored score on the game that has one, and NO SCORE on the rest', async () => {
-    vi.stubGlobal('localStorage', fakeStorage({ 'tempest-high-scores': table(149830, 1200) }))
+  it('shows a real published score on the game that has one, and NO SCORE on the rest', async () => {
+    // Re-seated for lb2-2. This used to seed the LOBBY's own localStorage with tempest's
+    // table — the same fixture ADR-0004 condemns, because it models a store the lobby and
+    // the games share, which is exactly what production does not have. The test's real
+    // intent (the bootstrap renders a genuine score where one exists, NO SCORE elsewhere)
+    // is transport-agnostic, so only the seeding changed: the score now arrives the way it
+    // actually arrives — published by the game to a cookie the lobby can read.
+    vi.stubGlobal('localStorage', fakeStorage())
+    publishScore('tempest', 149830)
     await import('../src/main')
 
     const tempest = document.querySelector('#games a[href="https://tempest.slabgorb.com/"]')
