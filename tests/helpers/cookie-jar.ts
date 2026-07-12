@@ -62,5 +62,5 @@ export function makeFakeStorage(initial: Record<string, string> = {}): Storage {
     get length() {
       return store.size
     },
-  } as unknown as Storage
+  } as Storage
 }

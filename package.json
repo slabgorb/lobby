@@ -18,6 +18,6 @@
     "vitest": "^4.1.9"
   },
   "dependencies": {
-    "@arcade/shared": "github:slabgorb/arcade-shared#06dd2e5ddf899c1e24b4f1807126add75712750a"
+    "@arcade/shared": "github:slabgorb/arcade-shared#ce43bb758dff74793ded44cfb34a8ac5b6940dde"
   }
 }
