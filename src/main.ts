@@ -5,6 +5,7 @@
 // registry game, and upgrade the typeface once the vector face lands.
 import { GAMES } from './core/registry'
 import { loadVectorFont } from './shell/font'
+import { mountModels } from './shell/modelBay'
 import { getTopScore } from './shell/storage'
 import { refreshScores, renderTiles } from './shell/tiles'
 
@@ -15,6 +16,11 @@ if (!games) throw new Error('lobby: #games container missing from index.html')
 // and nothing else needs to know. Scores are read best-effort per game — an
 // unreadable one shows NO SCORE rather than blocking the page.
 renderTiles(games, GAMES, getTopScore)
+
+// Then fill each tile's model bay with that game's hero object, drawn as a glowing vector
+// model. A separate pass, and it runs ONCE: the grid has to exist before there are bays to
+// draw into, and `refreshScores` below deliberately leaves what we put there alone.
+mountModels(games)
 
 // The scores above are a snapshot, and the player is about to go and beat one. When they
 // come back, `pageshow` is the only signal we are guaranteed to get: a back-navigation is
