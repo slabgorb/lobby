@@ -7,6 +7,14 @@ Visit it at **[arcade.slabgorb.com](https://arcade.slabgorb.com)**.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12] - 2026-07-13
+
+### Added
+- **Every tile now shows the game it launches.** Each tile's model bay draws a real glowing
+  vector model instead of sitting empty: Tempest's claw, a TIE fighter head-on, an asteroid,
+  the Battlezone tank in profile, and the Red Baron biplane. A tile whose model is missing
+  still looks exactly as it did before, so nothing breaks if a game has no model yet.
+
 ## [0.0.11] - 2026-07-12
 
 No player-visible changes. Documentation only.
