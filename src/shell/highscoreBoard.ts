@@ -53,7 +53,7 @@ export function mountHighScoreBoard(
   panel: HTMLElement,
   games: readonly Game[],
   getRows: (gameId: string) => readonly HighScoreRow[],
-  options: { intervalMs?: number } = {},
+  options: { readonly intervalMs?: number } = {},
 ): HighScoreBoardHandle {
   const intervalMs = options.intervalMs ?? DEFAULT_INTERVAL_MS
 

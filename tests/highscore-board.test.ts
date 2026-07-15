@@ -243,28 +243,44 @@ describe('a game with nothing readable shows an explicit empty state', () => {
 // ---------------------------------------------------------------------------
 
 describe('the rotation timer is torn down on stop()', () => {
-  it('stops rotating after stop() — the active game freezes', () => {
+  it('releases the interval on stop() — the timer is cleared, not merely wrapped past', () => {
     const handle = mountHighScoreBoard(panel, GAMES, getRows, { intervalMs: INTERVAL })
     vi.advanceTimersByTime(INTERVAL) // -> GAMES[1]
     expect(activeGameId()).toBe(GAMES[1].id)
+    expect(vi.getTimerCount(), 'a live rotation timer before stop()').toBe(1)
 
     handle.stop()
-    vi.advanceTimersByTime(INTERVAL * 5)
+
+    // Assert the timer ITSELF is gone — not "the active game is unchanged after N intervals".
+    // With exactly 5 games, advancing a multiple of 5 intervals wraps the index back to where
+    // it started, so that assertion passes even against a no-op stop(); getTimerCount() pins the
+    // teardown directly and survives a change to the game count.
+    expect(vi.getTimerCount(), 'the rotation timer is released on stop()').toBe(0)
+
+    // Behavioural corroboration: one more interval (a NON-multiple of the 5-game cycle) must not
+    // advance the board — a live timer would step GAMES[1] -> GAMES[2].
+    vi.advanceTimersByTime(INTERVAL)
     expect(activeGameId(), 'no rotation after stop()').toBe(GAMES[1].id)
   })
 
   it('does not fire against a detached DOM after stop()', () => {
     const handle = mountHighScoreBoard(panel, GAMES, getRows, { intervalMs: INTERVAL })
     handle.stop()
-    panel.remove() // the panel is gone; a live timer would touch a detached node
+    panel.remove() // the panel is gone; a live timer would redraw a detached node
 
+    // A stopped board has NO scheduled timer, so nothing can fire at the detached panel — assert
+    // that directly. render() on a detached-but-alive node does not throw, so a bare not.toThrow()
+    // is blind to a no-op stop(); the timer-count check is what actually pins teardown.
+    expect(vi.getTimerCount(), 'no live timer to fire against the detached DOM').toBe(0)
     expect(() => vi.advanceTimersByTime(INTERVAL * 3)).not.toThrow()
   })
 
-  it('stop() is idempotent', () => {
+  it('stop() is idempotent — a second call leaves the timer cleared and does not throw', () => {
     const handle = mountHighScoreBoard(panel, GAMES, getRows, { intervalMs: INTERVAL })
     handle.stop()
+    expect(vi.getTimerCount()).toBe(0)
     expect(() => handle.stop()).not.toThrow()
+    expect(vi.getTimerCount(), 'still no timer after a second stop()').toBe(0)
   })
 })
 
