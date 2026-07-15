@@ -7,6 +7,14 @@ Visit it at **[arcade.slabgorb.com](https://arcade.slabgorb.com)**.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.14] - 2026-07-13
+
+Version bump only.
+
+## [0.0.13] - 2026-07-13
+
+No player-visible changes. Documentation only.
+
 ## [0.0.12] - 2026-07-13
 
 ### Added
