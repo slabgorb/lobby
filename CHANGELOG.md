@@ -7,6 +7,19 @@ Visit it at **[arcade.slabgorb.com](https://arcade.slabgorb.com)**.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.16] - 2026-07-15
+
+### Added
+- **A rotating HIGH SCORES board.** The lobby now shows a live top-five leaderboard that
+  cycles through the games one at a time — each game's name in its own glow colour, its five
+  best players and scores, and a row of pips marking which game is on screen. A game with no
+  saved scores reads an honest **NO SCORES YET** instead of a fabricated name or a zero, and
+  the board refreshes the moment you return from beating one of your bests.
+
+## [0.0.15] - 2026-07-15
+
+Version bump only.
+
 ## [0.0.14] - 2026-07-13
 
 Version bump only.
