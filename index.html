@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <title>Vector Arcade</title>
+    <title>Slabcade</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,9 +15,7 @@
       :root {
         --bg: #000;
         --fg: #00eaff;
-        --amber: #ffe81f;
         --dim: #4fb8cc;
-        --pale: #6fe9ff;
       }
 
       * { box-sizing: border-box; }
@@ -29,13 +27,11 @@
         font-family: 'Vector Battle', 'Orbitron', monospace;
       }
 
-      /* The cabinet: everything lives inside it, and the whole screen carries a slow
-         CRT flicker — a vector monitor never sat perfectly still. */
+      /* The cabinet: everything lives inside it. */
       .cabinet {
         position: relative;
         min-height: 100vh;
         overflow: hidden;
-        animation: vb-flick 7s steps(1) infinite;
       }
 
       /* ---- Cabinet furniture (decoration only) --------------------------------
@@ -158,22 +154,9 @@
         max-width: 60rem;
       }
 
-      .presents {
-        margin: 0;
-        font-family: 'Orbitron', monospace;
-        font-weight: 700;
-        font-size: clamp(0.6rem, 1.5vw, 0.9rem);
-        /* letter-spacing adds a trailing gap after the last letter; the matching
-           padding-left puts the text back on centre. Same trick throughout. */
-        letter-spacing: 0.55em;
-        padding-left: 0.55em;
-        color: var(--pale);
-        text-shadow: 0 0 6px rgba(0, 234, 255, 0.7);
-      }
-
       /* The wordmark is spread letter-by-letter across the marquee — each glyph is
          its own span, justified apart. It carries an aria-label because otherwise a
-         screen reader announces "VECTORARCADE", or spells it out one letter at a
+         screen reader announces "SLABCADE", or spells it out one letter at a
          time; the visual trick must not cost the page its name. */
       .wordmark {
         margin: 0;
@@ -191,19 +174,6 @@
           0 0 20px var(--fg),
           0 0 46px var(--fg),
           0 0 80px rgba(0, 234, 255, 0.6);
-      }
-      .wordmark-gap { width: 0.6em; }
-
-      .select {
-        margin: 0;
-        font-family: 'Orbitron', monospace;
-        font-weight: 500;
-        font-size: clamp(0.7rem, 1.7vw, 1rem);
-        letter-spacing: 0.4em;
-        padding-left: 0.4em;
-        color: var(--amber);
-        text-shadow: 0 0 8px rgba(255, 232, 31, 0.8);
-        animation: vb-blink 1.4s steps(1) infinite;
       }
 
       .games {
@@ -260,19 +230,6 @@
 
       .tile:active { transform: scale(0.98); }
 
-      /* The model bay: a recess in the cabinet face, empty until lb2-9 draws the
-         game's hero object into it. Sized now so that filling it later cannot move
-         anything. Deliberately quiet — a dashed "placeholder" box would read as a
-         broken image on a live cabinet, whereas a faint recess reads as part of the
-         furniture. */
-      .tile-model {
-        width: 5.75rem;
-        height: 5.75rem;
-        border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-        border-radius: 3px;
-        box-shadow: inset 0 0 14px color-mix(in srgb, currentColor 10%, transparent);
-      }
-
       /* One line, always. Two-word titles ("STAR WARS", "RED BARON") would otherwise
          break at the space and sit two lines tall while their neighbours sit one,
          ragging the whole row. The design avoided this with non-breaking spaces in
@@ -299,6 +256,15 @@
         text-shadow: 0 0 6px currentColor;
       }
 
+      .tile-version {
+        font-family: 'Orbitron', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.24em;
+        padding-left: 0.24em;
+        opacity: 0.5;
+        text-shadow: 0 0 5px currentColor;
+      }
+
       .tile-controls {
         display: flex;
         flex-direction: column;
@@ -310,150 +276,12 @@
         opacity: 0.62;
       }
 
-      /* ---- HIGH SCORES board (lb2-8) -----------------------------------------
-         A bordered panel that cycles one game at a time: the game's name in its own glow
-         colour, its top-five ladder, and a pip row. The per-game colour rides on --glow,
-         set inline by the board (exactly as the tiles do), so every glowing part inherits
-         it; the panel itself falls back to the cabinet cyan. */
-      .highscores-panel {
-        --glow: var(--fg);
-        width: 100%;
-        max-width: 30rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.1rem;
-        padding: 1.6rem 1.8rem 1.4rem;
-        background: color-mix(in srgb, var(--fg) 4%, #000);
-        border: 1.5px solid color-mix(in srgb, var(--fg) 55%, transparent);
-        border-radius: 3px;
-        box-shadow:
-          0 0 10px color-mix(in srgb, var(--fg) 30%, transparent),
-          inset 0 0 16px color-mix(in srgb, var(--fg) 8%, transparent);
-      }
-
-      .highscores-caption {
-        margin: 0;
-        font-family: 'Orbitron', monospace;
-        font-weight: 700;
-        font-size: clamp(0.68rem, 1.5vw, 0.9rem);
-        letter-spacing: 0.5em;
-        padding-left: 0.5em;
-        color: var(--pale);
-        text-shadow: 0 0 7px rgba(0, 234, 255, 0.7);
-      }
-
-      #high-scores {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      /* The rotating game's name, in its own glow colour (--glow set inline by the board). */
-      .hs-title {
-        font-family: 'Vector Battle', 'Orbitron', monospace;
-        font-weight: 700;
-        font-size: clamp(1.1rem, 2.6vw, 1.6rem);
-        letter-spacing: 0.16em;
-        padding-left: 0.16em;
-        white-space: nowrap;
-        color: var(--glow);
-        text-shadow:
-          0 0 5px currentColor,
-          0 0 14px currentColor;
-      }
-
-      /* The ladder region. A min-height reserves roughly five rows of space so the panel does
-         not jump as it rotates between a full ladder and the shorter empty state. */
-      .hs-ladder {
-        width: 100%;
-        min-height: 8.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 0.35rem;
-        font-family: 'Orbitron', monospace;
-      }
-
-      .hs-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 1.5rem;
-        font-size: 0.86rem;
-        letter-spacing: 0.12em;
-        color: #dff;
-        text-shadow: 0 0 6px rgba(0, 234, 255, 0.35);
-      }
-
-      .hs-name {
-        font-weight: 700;
-        letter-spacing: 0.22em;
-        color: var(--pale);
-      }
-
-      .hs-score {
-        font-variant-numeric: tabular-nums;
-        color: #fff;
-        text-shadow: 0 0 6px rgba(0, 234, 255, 0.5);
-      }
-
-      /* The honest empty state — a game nobody has played yet. Quiet, centred, no digits. */
-      .hs-empty {
-        text-align: center;
-        font-family: 'Orbitron', monospace;
-        font-size: 0.78rem;
-        letter-spacing: 0.34em;
-        padding-left: 0.34em;
-        color: var(--dim);
-        text-shadow: 0 0 6px rgba(0, 234, 255, 0.3);
-      }
-
-      /* One pip per game; the active one lit in that game's --glow. */
-      .hs-pips {
-        display: flex;
-        justify-content: center;
-        gap: 0.7rem;
-      }
-
-      .hs-pip {
-        width: 0.62rem;
-        height: 0.62rem;
-        border-radius: 50%;
-        border: 1.5px solid var(--glow);
-        opacity: 0.4;
-        transition:
-          opacity 0.2s ease,
-          box-shadow 0.2s ease;
-      }
-
-      .hs-pip.is-active {
-        opacity: 1;
-        background: var(--glow);
-        box-shadow: 0 0 8px var(--glow);
-      }
-
       .footer {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 0.9rem;
         text-align: center;
-      }
-
-      .insert-coin {
-        margin: 0;
-        font-weight: 700;
-        font-size: clamp(0.9rem, 2.2vw, 1.35rem);
-        letter-spacing: 0.3em;
-        padding-left: 0.3em;
-        color: #fff;
-        text-shadow:
-          0 0 6px #fff,
-          0 0 18px var(--fg);
-        animation: vb-blink 1.1s steps(1) infinite;
       }
 
       .disclaimer {
@@ -466,28 +294,10 @@
         text-shadow: 0 0 5px rgba(0, 234, 255, 0.35);
       }
 
-      @keyframes vb-blink {
-        0%, 55% { opacity: 1; }
-        56%, 100% { opacity: 0.12; }
-      }
-
-      @keyframes vb-flick {
-        0%, 96%, 100% { opacity: 1; }
-        97% { opacity: 0.86; }
-        98% { opacity: 1; }
-        99% { opacity: 0.9; }
-      }
-
-      /* Blinking text and a flickering screen are exactly the things that hurt people
-         with vestibular or photosensitive conditions. If they have asked the OS to
-         stop, the cabinet stops. */
+      /* The tile lift on hover/focus is a transition; if the player has asked the OS
+         to stop motion, hold the tiles still. */
       @media (prefers-reduced-motion: reduce) {
-        .cabinet,
-        .select,
-        .insert-coin,
-        .tile,
-        .hs-pip {
-          animation: none;
+        .tile {
           transition: none;
         }
       }
@@ -511,41 +321,25 @@
 
       <div class="content">
         <header class="marquee">
-          <p class="presents">SLABGORB&nbsp;PRESENTS</p>
-          <h1 class="wordmark" aria-label="VECTOR ARCADE">
-            <span aria-hidden="true">V</span>
-            <span aria-hidden="true">E</span>
-            <span aria-hidden="true">C</span>
-            <span aria-hidden="true">T</span>
-            <span aria-hidden="true">O</span>
-            <span aria-hidden="true">R</span>
-            <span class="wordmark-gap" aria-hidden="true"></span>
+          <h1 class="wordmark" aria-label="SLABCADE">
+            <span aria-hidden="true">S</span>
+            <span aria-hidden="true">L</span>
             <span aria-hidden="true">A</span>
-            <span aria-hidden="true">R</span>
+            <span aria-hidden="true">B</span>
             <span aria-hidden="true">C</span>
             <span aria-hidden="true">A</span>
             <span aria-hidden="true">D</span>
             <span aria-hidden="true">E</span>
           </h1>
-          <p class="select">&#9670;&nbsp;&nbsp;SELECT&nbsp;GAME&nbsp;&nbsp;&#9670;</p>
         </header>
 
         <!-- Filled from the registry by main.ts. Never hardcoded: adding a game to
              src/core/registry.ts is the only edit needed to put it on the cabinet. -->
         <nav id="games" class="games" aria-label="Games"></nav>
 
-        <!-- The rotating HIGH SCORES board (lb2-8). The caption is static markup; main.ts
-             mounts the cycling board (game name, top-five ladder, pip row) into #high-scores,
-             replacing its contents — so the caption sits in the wrapper, outside it. -->
-        <section class="highscores-panel" aria-label="High scores">
-          <p class="highscores-caption">HIGH&nbsp;SCORES</p>
-          <div id="high-scores"></div>
-        </section>
-
         <footer class="footer">
-          <p class="insert-coin">INSERT&nbsp;COIN</p>
           <p class="disclaimer">
-            A&nbsp;FAN-MADE&nbsp;TRIBUTE&nbsp;TO&nbsp;THE&nbsp;VECTOR&nbsp;ERA&nbsp;&nbsp;&middot;&nbsp;&nbsp;NOT&nbsp;AFFILIATED
+            A&nbsp;FAN-MADE&nbsp;TRIBUTE&nbsp;TO&nbsp;THE&nbsp;80's ARCADE&nbsp;ERA&nbsp;&nbsp;&middot;&nbsp;&nbsp;NOT&nbsp;AFFILIATED
           </p>
         </footer>
       </div>

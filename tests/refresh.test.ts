@@ -176,23 +176,21 @@ describe('the refresh reuses the tiles it already built', () => {
     await bootLobby()
 
     const before = tile(TEMPEST)
-    const slot = before.querySelector<HTMLElement>('[data-model-slot="tempest"]')
-    expect(slot, 'precondition: lb2-7 leaves a model slot on every tile').not.toBeNull()
 
-    // Stand in for the live vector model lb2-9 will draw into that slot. A refresh that
-    // rebuilds the grid (`replaceChildren`) destroys this on EVERY back-navigation, and takes
-    // keyboard focus and any in-flight CSS transition with it. The tile is also a real <a>:
-    // recreating it is how a focused tile silently loses focus mid-Tab.
-    const model = document.createElement('canvas')
-    model.id = 'hero-model'
-    slot?.append(model)
+    // Stand in for anything living inside a tile — keyboard focus, an in-flight CSS
+    // transition, a stray node. A refresh that rebuilds the grid (`replaceChildren`) destroys
+    // it on EVERY back-navigation. The tile is also a real <a>: recreating it is how a focused
+    // tile silently loses focus mid-Tab.
+    const marker = document.createElement('span')
+    marker.id = 'survives-refresh'
+    before.append(marker)
 
     publishScore('tempest', 250000)
     firePageshow(true)
 
     expect(scoreLine(TEMPEST), 'the score must still refresh').toBe('HI · 250,000')
     expect(document.querySelector(TEMPEST), 'the tile element itself must survive').toBe(before)
-    expect(document.getElementById('hero-model'), "lb2-9's model must survive").toBe(model)
+    expect(document.getElementById('survives-refresh'), 'a child of the tile must survive').toBe(marker)
   })
 
   it('never doubles the grid, however many times the player comes back', async () => {

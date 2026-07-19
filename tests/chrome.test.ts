@@ -104,33 +104,18 @@ describe('cabinet furniture never gets between the player and the games', () => 
 })
 
 describe('marquee', () => {
-  it('reads SLABGORB PRESENTS above the wordmark', () => {
-    const text = (doc.body.textContent ?? '').replace(/\s+/g, ' ')
-    expect(text).toContain('SLABGORB PRESENTS')
-  })
-
-  // The design spells the wordmark one letter per <span> (V·E·C·T·O·R A·R·C·A·D·E)
-  // to spread it across the marquee. That is a purely visual trick, and it leaves
-  // the h1 announcing "VECTORARCADE" — or, worse, spelling it out letter by letter.
+  // The design spells the wordmark one letter per <span> (S·L·A·B·C·A·D·E) to
+  // spread it across the marquee. That is a purely visual trick, and it leaves
+  // the h1 announcing "SLABCADE" — or, worse, spelling it out letter by letter.
   // However it is built, the heading must expose the real name.
-  it('exposes the wordmark as the accessible name VECTOR ARCADE', () => {
+  it('exposes the wordmark as the accessible name SLABCADE', () => {
     const h1 = doc.querySelector('h1')
     expect(h1).not.toBeNull()
-    expect(accessibleName(h1 as Element)).toBe('VECTOR ARCADE')
-  })
-
-  it('invites the player to choose', () => {
-    const text = (doc.body.textContent ?? '').replace(/\s+/g, ' ')
-    expect(text).toContain('SELECT GAME')
+    expect(accessibleName(h1 as Element)).toBe('SLABCADE')
   })
 })
 
 describe('footer', () => {
-  it('blinks INSERT COIN (the design ships it on)', () => {
-    const text = (doc.body.textContent ?? '').replace(/\s+/g, ' ')
-    expect(text).toContain('INSERT COIN')
-  })
-
   it('carries the fan-tribute disclaimer', () => {
     const text = (doc.body.textContent ?? '').replace(/\s+/g, ' ').toUpperCase()
     expect(text).toContain('NOT AFFILIATED')
