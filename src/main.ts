@@ -5,9 +5,7 @@
 // registry game, and upgrade the typeface once the vector face lands.
 import { GAMES } from './core/registry'
 import { loadVectorFont } from './shell/font'
-import { mountHighScoreBoard } from './shell/highscoreBoard'
-import { mountModels } from './shell/modelBay'
-import { getTopScore, getTopScores } from './shell/storage'
+import { getTopScore } from './shell/storage'
 import { refreshScores, renderTiles } from './shell/tiles'
 
 const games = document.getElementById('games')
@@ -18,18 +16,6 @@ if (!games) throw new Error('lobby: #games container missing from index.html')
 // unreadable one shows NO SCORE rather than blocking the page.
 renderTiles(games, GAMES, getTopScore)
 
-// Then fill each tile's model bay with that game's hero object, drawn as a glowing vector
-// model. A separate pass, and it runs ONCE: the grid has to exist before there are bays to
-// draw into, and `refreshScores` below deliberately leaves what we put there alone.
-mountModels(games)
-
-// The rotating HIGH SCORES board (lb2-8). It reads each game's published top-five ladder
-// through the SAME cross-origin summary the tiles read their top score from (@arcade/shared,
-// ADR-0004 widened). The panel is optional furniture: if index.html carries no #high-scores
-// section the board is simply not mounted, and the rest of the cabinet comes up unaffected.
-const highScores = document.getElementById('high-scores')
-const board = highScores ? mountHighScoreBoard(highScores, GAMES, getTopScores) : null
-
 // The scores above are a snapshot, and the player is about to go and beat one. When they
 // come back, `pageshow` is the only signal we are guaranteed to get: a back-navigation is
 // usually served from the BFCache, which restores the page from memory — the document is
@@ -39,11 +25,9 @@ const board = highScores ? mountHighScoreBoard(highScores, GAMES, getTopScores) 
 //
 // It fires on the ordinary first load too, where the re-read simply reports the same
 // numbers we just rendered. That is a harmless second read, and the price of not having to
-// care which kind of load this was. The tiles and the board share this one entry point, so
-// beating a score and returning updates both.
+// care which kind of load this was — a returning player sees their new score on the tile.
 window.addEventListener('pageshow', () => {
   refreshScores(games, getTopScore)
-  board?.refresh()
 })
 
 // Best-effort web font; the page already reads in the Orbitron/monospace fallback,

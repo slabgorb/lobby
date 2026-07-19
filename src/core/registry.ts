@@ -15,6 +15,8 @@ export interface Game {
   color: string
   /** Short keybinding hints shown on the tile, one line per control. */
   controls: readonly string[]
+  /** The game's current released version, shown on its tile (e.g. '1.0.24'). */
+  version: string
 }
 
 /**
@@ -29,6 +31,7 @@ export const GAMES: readonly Game[] = [
     launchUrl: 'https://tempest.slabgorb.com/',
     color: '#00eaff',
     controls: ['ROTATE — Wheel / ←→', 'FIRE — Click / Space'],
+    version: '1.0.24',
   },
   {
     id: 'star-wars',
@@ -36,6 +39,7 @@ export const GAMES: readonly Game[] = [
     launchUrl: 'https://star-wars.slabgorb.com/',
     color: '#ffe81f',
     controls: ['AIM — Mouse', 'FIRE — Click / Space'],
+    version: '0.0.26',
   },
   {
     id: 'asteroids',
@@ -43,6 +47,7 @@ export const GAMES: readonly Game[] = [
     launchUrl: 'https://asteroids.slabgorb.com/',
     color: '#ff6a00',
     controls: ['ROTATE/THRUST — ←→↑ / WASD', 'FIRE — Space / K'],
+    version: '1.0.11',
   },
   {
     id: 'battlezone',
@@ -50,6 +55,7 @@ export const GAMES: readonly Game[] = [
     launchUrl: 'https://battlezone.slabgorb.com/',
     color: '#00ff41',
     controls: ['DRIVE — Arrows / E D I K', 'FIRE — Space / F'],
+    version: '1.0.0',
   },
   {
     id: 'red-baron',
@@ -57,6 +63,15 @@ export const GAMES: readonly Game[] = [
     launchUrl: 'https://red-baron.slabgorb.com/',
     color: '#ff2b2b',
     controls: ['BANK — ←→ / A D', 'CLIMB/DIVE — ↑↓ / W S'],
+    version: '0.0.20',
+  },
+  {
+    id: 'centipede',
+    title: 'CENTIPEDE',
+    launchUrl: 'https://centipede.slabgorb.com/',
+    color: '#2aa358',
+    controls: ['Mouse'],
+    version: '0.0.0',
   },
 ]
 

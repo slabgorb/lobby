@@ -30,14 +30,3 @@ export function formatScoreLine(top: number | null): string {
   if (top === null) return 'NO SCORE'
   return `HI · ${top.toLocaleString(SCORE_LOCALE)}`
 }
-
-/**
- * The high-scores board's honest empty state (lb2-8, AC-4): a game with no readable ladder
- * shows this — never a fabricated name, a placeholder ladder, or a stand-in zero.
- *
- * It lives HERE, beside `formatScoreLine`, for the same reason: this module is the one place
- * allowed to word what the cabinet says about a player's record. Keeping it here also keeps
- * the board free of the substring `NO SCORE`, which the source rule in tests/refresh-rules.ts
- * forbids everywhere but this file — the score line, and its absence, are formatted once.
- */
-export const NO_SCORES_YET = 'NO SCORES YET'
