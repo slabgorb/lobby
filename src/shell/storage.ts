@@ -23,20 +23,11 @@
 // tests/storage.test.ts holds the line. Every failure mode still degrades to null: a tile
 // with no readable score shows "NO SCORE", never throws, and never blocks the page.
 
-import { readTopScore, readTopScores, type TopScoreRow } from '@arcade/shared/highscore'
+import { readTopScore } from '@arcade/shared/highscore'
 
 // The single best score a game has published, or null when there is none to show.
 // A game that has never been played on this browser (and red-baron, which persists no
 // scores at all) honestly reads null rather than inventing a number.
 export function getTopScore(gameId: string): number | null {
   return readTopScore(gameId)
-}
-
-// The game's published top-five ladder (name + score rows, highest first), or [] when there
-// is nothing readable — a never-played game, a legacy bare-number cookie, or a purged one.
-// lb2-8's HIGH SCORES board reads through here; like getTopScore it owns no transport of its
-// own, so swapping the cross-origin cookie for another adapter stays a one-file change in
-// @arcade/shared (ADR-0004). It never fabricates a row — [] is an honest empty ladder.
-export function getTopScores(gameId: string): TopScoreRow[] {
-  return readTopScores(gameId)
 }

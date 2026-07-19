@@ -85,16 +85,6 @@ describe('lobby bootstrap', () => {
     expect(asteroids?.textContent).toContain('NO SCORE')
   })
 
-  it('gives every tile the model slot lb2-9 will draw into', async () => {
-    vi.stubGlobal('localStorage', fakeStorage())
-    await import('../src/main')
-
-    const slots = [...document.querySelectorAll('#games [data-model-slot]')].map(
-      (el) => (el as HTMLElement).dataset.modelSlot,
-    )
-    expect(slots).toEqual(GAMES.map((g) => g.id))
-  })
-
   // The page must come up even on a cabinet where storage is off limits (private
   // mode, sandboxed iframe). A lobby that throws here shows the player a black
   // screen instead of a list of games.
@@ -105,64 +95,5 @@ describe('lobby bootstrap', () => {
     const tiles = document.querySelectorAll('#games a')
     expect(tiles.length).toBe(GAMES.length)
     expect(tiles[0]?.textContent).toContain('NO SCORE')
-  })
-})
-
-// lb2-9. A perfect models.ts and a perfect modelBay.ts can both be green while the real
-// cabinet shows five empty recesses — all it takes is a bootstrap that never mounts them.
-// This drives the actual boot and asserts the bays are filled.
-describe('lobby bootstrap — the model bays are filled at boot (lb2-9)', () => {
-  // jsdom implements no canvas, so getContext('2d') answers null and the model bay
-  // (correctly) declines to leave a dead canvas behind. Stub a context in so the wiring
-  // is observable — the drawing itself goes through the REAL @arcade/shared/glow here.
-  function stubCanvasContext(): void {
-    const ctx = {
-      clearRect: () => {},
-      setTransform: () => {},
-      scale: () => {},
-      translate: () => {},
-      beginPath: () => {},
-      moveTo: () => {},
-      lineTo: () => {},
-      closePath: () => {},
-      stroke: () => {},
-      save: () => {},
-      restore: () => {},
-      strokeStyle: '',
-      lineWidth: 1,
-      shadowColor: '',
-      shadowBlur: 0,
-    }
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
-      () => ctx as unknown as CanvasRenderingContext2D,
-    )
-  }
-
-  it('mounts a model canvas into every tile bay', async () => {
-    stubCanvasContext()
-    vi.stubGlobal('localStorage', fakeStorage())
-    await import('../src/main')
-
-    const canvases = document.querySelectorAll('#games [data-model-slot] canvas')
-    expect(canvases.length).toBe(GAMES.length)
-  })
-
-  // The bays are decoration mounted at boot; a game the lobby cannot draw is not a reason
-  // to show the visitor a black screen where the grid should be.
-  //
-  // The getContext spy is what makes this test mean anything. Without it, "no canvas on the
-  // page" is equally true of a lobby that tried to draw and declined, and of a lobby that
-  // never wired the mount pass up at all — deleting mountModels() from main.ts would leave
-  // it green. Asserting the mount pass ASKED for a context proves it ran and then degraded.
-  it('still comes up when the browser hands back no 2D context', async () => {
-    const getContext = vi
-      .spyOn(HTMLCanvasElement.prototype, 'getContext')
-      .mockImplementation(() => null)
-    vi.stubGlobal('localStorage', fakeStorage())
-    await import('../src/main')
-
-    expect(getContext).toHaveBeenCalled()
-    expect(document.querySelectorAll('#games a').length).toBe(GAMES.length)
-    expect(document.querySelector('#games canvas')).toBeNull()
   })
 })

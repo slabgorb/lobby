@@ -46,17 +46,6 @@ export function buildTile(game: Game, topScore: number | null): HTMLAnchorElemen
   // after it was built, and the href is a URL, not an id.
   tile.setAttribute(GAME_ATTR, game.id)
 
-  // The model bay: a recess in the cabinet, sized and positioned now but drawn into
-  // later. lb2-9 renders the game's hero object (blaster, TIE fighter, asteroid,
-  // tank, biplane) in here. It is deliberately EMPTY — the space is reserved so that
-  // filling it cannot move the tile's layout. Decorative, so it is hidden from
-  // assistive tech: the tile already announces itself by title and score.
-  const slot = document.createElement('span')
-  slot.className = 'tile-model'
-  slot.dataset.modelSlot = game.id
-  slot.setAttribute('aria-hidden', 'true')
-  tile.append(slot)
-
   tile.append(line('tile-title', game.title))
   tile.append(line(SCORE_CLASS, formatScoreLine(topScore)))
 
@@ -66,6 +55,8 @@ export function buildTile(game: Game, topScore: number | null): HTMLAnchorElemen
     controls.append(line('tile-control', hint))
   }
   tile.append(controls)
+
+  tile.append(line('tile-version', `v${game.version}`))
 
   return tile
 }

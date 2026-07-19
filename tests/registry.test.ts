@@ -53,6 +53,12 @@ describe('GAMES registry', () => {
       }
     }
   })
+
+  it('gives every game a non-empty version string', () => {
+    for (const g of GAMES) {
+      expect(g.version.length).toBeGreaterThan(0)
+    }
+  })
 })
 
 describe('getGame', () => {
@@ -84,7 +90,15 @@ describe('Game shape', () => {
       launchUrl: '/sample/',
       color: '#00eaff',
       controls: ['FIRE — Space'],
+      version: '1.0.0',
     }
-    expect(Object.keys(sample).sort()).toEqual(['color', 'controls', 'id', 'launchUrl', 'title'])
+    expect(Object.keys(sample).sort()).toEqual([
+      'color',
+      'controls',
+      'id',
+      'launchUrl',
+      'title',
+      'version',
+    ])
   })
 })

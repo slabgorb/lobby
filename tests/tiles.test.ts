@@ -28,6 +28,7 @@ const SYNTHETIC: Game = {
   launchUrl: 'https://lunar-lander.slabgorb.com/',
   color: '#7d3cff',
   controls: ['THRUST — Up', 'ROTATE — ←→'],
+  version: '9.9.9',
 }
 
 let container: HTMLElement
@@ -110,29 +111,10 @@ describe('buildTile — content comes from the registry, never from the design',
   })
 })
 
-describe('buildTile — model slot (the seam lb2-9 draws into)', () => {
-  it('carries a slot keyed by the game id', () => {
-    const tile = buildTile(SYNTHETIC, null)
-    const slot = tile.querySelector('[data-model-slot]') as HTMLElement | null
-    expect(slot).not.toBeNull()
-    expect(slot?.dataset.modelSlot).toBe('lunar-lander')
-  })
-
-  // lb2-7 reserves the slot; it does not fill it. The design's placeholder (a ◈
-  // glyph plus a label like "BLASTER") is deliberately NOT shipped — a dashed box
-  // captioned with a word that is not a score, a title, or a model is just noise on
-  // a production cabinet.
-  //
-  // lb2-9 fills the bay, and does it in a SEPARATE pass (`mountModels`, shell/modelBay.ts)
-  // rather than here. That split is the whole reason `refreshScores` can rewrite a score
-  // line on return from a game without throwing the models away: the build path only ever
-  // lays out structure. So this assertion is not a placeholder waiting to be deleted — it
-  // is the build path's standing contract, and model-bay.test.ts pins the other half.
-  it('reserves the bay but does not fill it — mountModels does that', () => {
-    const tile = buildTile(SYNTHETIC, null)
-    const slot = tile.querySelector('[data-model-slot]') as HTMLElement
-    expect(slot.children.length).toBe(0)
-    expect(slot.textContent?.trim()).toBe('')
+describe('buildTile — the version line', () => {
+  it('renders the game version from the registry, prefixed with v', () => {
+    const tile = buildTile({ ...SYNTHETIC, version: '1.2.3' }, null)
+    expect(tile.querySelector('.tile-version')?.textContent).toBe('v1.2.3')
   })
 })
 
@@ -180,7 +162,6 @@ describe('renderTiles — the grid is the registry', () => {
     expect(tile).not.toBeNull()
     expect(tile?.textContent).toContain('LUNAR LANDER')
     expect((tile as HTMLElement).style.getPropertyValue('--glow').trim()).toBe('#7d3cff')
-    expect(tile?.querySelector('[data-model-slot]')).not.toBeNull()
   })
 
   it('asks for each score by that game own id, in registry order', () => {
