@@ -26,8 +26,8 @@
 import { readTopScore } from '@arcade/shared/highscore'
 
 // The single best score a game has published, or null when there is none to show.
-// A game that has never been played on this browser (and red-baron, which persists no
-// scores at all) honestly reads null rather than inventing a number.
+// A game that has never been played on this browser (or one that persists no scores at
+// all) honestly reads null rather than inventing a number.
 export function getTopScore(gameId: string): number | null {
   return readTopScore(gameId)
 }
