@@ -22,7 +22,8 @@ export interface Game {
 /**
  * Every game the lobby lists, each launched on its own subdomain
  * (<slug>.slabgorb.com) served from R2: Tempest, Star Wars, Asteroids,
- * Battlezone, Red Baron. More games join here as their subrepos become servable.
+ * Battlezone, Centipede. More games join here as their subrepos become servable.
+ * (Red Baron is provisioned but not yet listed — it isn't finished enough for prod.)
  */
 export const GAMES: readonly Game[] = [
   {
@@ -56,14 +57,6 @@ export const GAMES: readonly Game[] = [
     color: '#00ff41',
     controls: ['DRIVE — Arrows / E D I K', 'FIRE — Space / F'],
     version: '1.0.0',
-  },
-  {
-    id: 'red-baron',
-    title: 'RED BARON',
-    launchUrl: 'https://red-baron.slabgorb.com/',
-    color: '#ff2b2b',
-    controls: ['BANK — ←→ / A D', 'CLIMB/DIVE — ↑↓ / W S'],
-    version: '0.0.20',
   },
   {
     id: 'centipede',

@@ -26,7 +26,7 @@ import { GAMES } from '../src/core/registry'
 const TEMPEST = '#games a[href="https://tempest.slabgorb.com/"]'
 const ASTEROIDS = '#games a[href="https://asteroids.slabgorb.com/"]'
 const BATTLEZONE = '#games a[href="https://battlezone.slabgorb.com/"]'
-const RED_BARON = '#games a[href="https://red-baron.slabgorb.com/"]'
+const CENTIPEDE = '#games a[href="https://centipede.slabgorb.com/"]'
 
 function tile(selector: string): HTMLAnchorElement {
   const el = document.querySelector<HTMLAnchorElement>(selector)
@@ -125,7 +125,7 @@ describe('lobby tiles re-read the high score on return from a game', () => {
 
     expect(scoreLine(TEMPEST), 'the game just played').toBe('HI · 12,000')
     expect(scoreLine(BATTLEZONE), 'untouched, and still right').toBe('HI · 61,000')
-    expect(scoreLine(RED_BARON), 'never published, and still honest').toBe('NO SCORE')
+    expect(scoreLine(CENTIPEDE), 'never published, and still honest').toBe('NO SCORE')
   })
 })
 
@@ -135,18 +135,18 @@ describe('lobby tiles re-read the high score on return from a game', () => {
 
 describe('a tile with nothing readable to show', () => {
   it('stays at NO SCORE across repeated refreshes — never flickering to a 0', async () => {
-    // red-baron persists no scores at all (lb2-6), so it has nothing to publish, ever. It is
-    // the permanent null case, and it must survive any number of refreshes unchanged.
+    // centipede has published no score in this jar, so it has nothing to show. It is the
+    // permanent null case here, and it must survive any number of refreshes unchanged.
     publishScore('tempest', 100000)
     await bootLobby()
-    expect(scoreLine(RED_BARON)).toBe('NO SCORE')
+    expect(scoreLine(CENTIPEDE)).toBe('NO SCORE')
 
     firePageshow(true)
     firePageshow(true)
     firePageshow(false)
 
-    expect(scoreLine(RED_BARON)).toBe('NO SCORE')
-    expect(scoreLine(RED_BARON), 'a null score must never render as a real one').not.toContain('HI')
+    expect(scoreLine(CENTIPEDE)).toBe('NO SCORE')
+    expect(scoreLine(CENTIPEDE), 'a null score must never render as a real one').not.toContain('HI')
   })
 
   it('drops back to NO SCORE when a published score is evicted — it does not keep the stale one', async () => {
